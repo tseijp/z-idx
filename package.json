@@ -1,0 +1,19 @@
+{
+        "name": "zidx",
+        "version": "1.0.0",
+        "type": "module",
+        "scripts": {
+                "dev": "vite",
+                "build": "npx tsup",
+                "preview": "vite preview",
+                "pub": "npx changeset publish",
+                "test": "npx vitest run"
+        },
+        "devDependencies": {
+                "@changesets/cli": "*",
+                "typescript": "~5.9.3",
+                "tsup": "*",
+                "vite": "*",
+                "vitest": "*"
+        }
+}
