@@ -93,6 +93,118 @@ Fully dense triangle (`a->b, a->c, b->c`) respects transitivity.
 Nested pair arrays `z('a',[z('b','c')])` flatten to the same order.
 Late-arriving ancestor pairs still yield the canonical topological sequence.
 
+<table>
+<tr><th colspan="6">Three-node DAGs (all 6)</th></tr>
+<tr valign="bottom">
+<td>
+
+```mermaid
+flowchart TB
+    g[" "]
+    a ~~~ g
+    g ~~~ b
+    g ~~~ c
+    style g fill:none,stroke:none,color:none
+```
+
+```ts
+z(['a', 'b', 'c'])
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart TB
+    g[" "]
+    a ~~~ g
+    g ~~~ b
+    g ~~~ c
+    style g fill:none,stroke:none,color:none
+    a --> b
+```
+
+```ts
+z('a', 'b')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart TB
+    g[" "]
+    a ~~~ g
+    g ~~~ b
+    g ~~~ c
+    style g fill:none,stroke:none,color:none
+    a --> b
+    a --> c
+```
+
+```ts
+z('a', ['b', 'c'])
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart TB
+    g[" "]
+    a ~~~ g
+    g ~~~ b
+    g ~~~ c
+    style g fill:none,stroke:none,color:none
+    b ---> a
+    c ---> a
+```
+
+```ts
+z(['b', 'c'], 'a')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart TB
+    g[" "]
+    a ~~~ g
+    g ~~~ b
+    g ~~~ c
+    style g fill:none,stroke:none,color:none
+    a --> b
+    b --> c
+```
+
+```ts
+z('a', 'b', 'c')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart TB
+    g[" "]
+    a ~~~ g
+    g ~~~ b
+    g ~~~ c
+    style g fill:none,stroke:none,color:none
+    a --> b
+    b --> c
+    a --> c
+```
+
+```ts
+z('a', 'b', 'c'), z('a', 'c')
+```
+
+</td>
+</tr>
+</table>
+
 ### Topology: Four Nodes
 
 The catalogue of four-vertex DAGs (31 shapes) maps onto builds combining chains, fans, diamonds, ladders, and merged roots.
@@ -101,12 +213,1097 @@ reversed sibling order `a->[d,c,b]`, cross-braced ladders `a->b, a->c, b->c, c->
 parallel roots with tails, and dual roots merging before a sink.
 Uniform gaps persist regardless of edge density, demonstrating deterministic spacing across all enumerated isomorphism classes.
 
+<table>
+<tr><th>6 edges</th></tr>
+<tr valign="bottom"><td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    a --> c
+    b --> d
+    a --> d
+    b --> c
+    c --> d
+```
+
+```ts
+z('a', ['b', 'c', 'd']), z(['b', 'c'], 'd'), z('b', 'c')
+```
+
+</td></tr>
+
+<tr><th>5 edges</th></tr>
+<tr valign="bottom">
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    b --> d
+    a --> b
+    a --> d
+    a --> c
+    b --> c
+```
+
+```ts
+z('a', ['b', 'c', 'd']), z('b', ['c', 'd'])
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> c
+    a --> b
+    c --> d
+    a --> d
+    b --> c
+```
+
+```ts
+z('a', ['b', 'c', 'd']), z('b', 'c', 'd')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        c
+    end
+    subgraph y[" "]
+        direction TB
+        b
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    a --> d
+    a --> c
+    b --> d
+    c --> d
+```
+
+```ts
+z('a', ['b', 'c', 'd']), z(['b', 'c'], 'd')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> c
+    a --> b
+    b --> c
+    c --> d
+    b --> d
+
+```
+
+```ts
+z('a', ['b', 'c']), z('b', ['c', 'd']), z('c', 'd')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    a --> d
+    b --> c
+    b --> d
+    c --> d
+
+```
+
+```ts
+z('a', ['b', 'd']), z('b', ['c', 'd']), z('c', 'd')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    b --> c
+    c --> d
+    b --> d
+    a --> c
+    a --> d
+
+```
+
+```ts
+z('a', ['c', 'd']), z('b', ['c', 'd']), z('c', 'd')
+```
+
+</td>
+</tr>
+
+<tr><th>4 edges</th></tr>
+<tr valign="bottom">
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    a --> c
+    a --> d
+    b --> c
+
+```
+
+```ts
+z('a', ['b', 'c', 'd']), z('b', 'c')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    a --> c
+    b --> c
+    b --> d
+
+```
+
+```ts
+z('a', ['b', 'c']), z('b', ['c', 'd'])
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> c
+    b --> d
+    a --> d
+    b --> c
+
+```
+
+```ts
+z('a', ['c', 'd']), z('b', ['c', 'd'])
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        c
+    end
+    subgraph y[" "]
+        direction TB
+        b
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    a --> c
+    b --> c
+    c --> d
+
+```
+
+```ts
+z('a', ['b', 'c']), z('b', 'c', 'd')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    a --> d
+    b --> c
+    c --> d
+
+```
+
+```ts
+z('a', ['b', 'd']), z('b', 'c', 'd')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> c
+    a --> d
+    b --> c
+    c --> d
+
+```
+
+```ts
+z('a', ['c', 'd']), z('b', 'c', 'd')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    a --> c
+    b --> d
+    c --> d
+
+```
+
+```ts
+z('a', ['b', 'c']), z(['b', 'c'], 'd')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> c
+    a --> d
+    b --> d
+    c --> d
+
+```
+
+```ts
+z('a', ['c', 'd']), z(['b', 'c'], 'd')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    b --> c
+    b --> d
+
+```
+
+```ts
+z('a', 'b', 'c'), z(['b', 'c'], 'd')
+```
+
+</td>
+</tr>
+
+<tr><th>3 edges</th></tr>
+<tr valign="bottom">
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        c
+    end
+    subgraph y[" "]
+        direction TB
+        b
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    a --> c
+    a --> d
+
+```
+
+```ts
+z('a', ['b', 'c', 'd'])
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    a --> c
+    b --> c
+
+```
+
+```ts
+z('a', ['b', 'c']), z('b', 'c')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> c
+    a --> d
+    b --> c
+
+```
+
+```ts
+z('a', ['c', 'd']), z('b', 'c')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    b --> c
+    b --> d
+
+```
+
+```ts
+z('a', 'b'), z('b', ['c', 'd'])
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    b --> c
+    c --> d
+
+```
+
+```ts
+z('a', 'b', 'c', 'd')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        c
+    end
+    subgraph y[" "]
+        direction TB
+        b
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> c
+    b --> c
+    c --> d
+
+```
+
+```ts
+z(['a', 'b'], 'c'), z('c', 'd')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> d
+    b --> c
+    c --> d
+
+```
+
+```ts
+z('a', 'd'), z('b', 'c', 'd')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        c
+    end
+    subgraph y[" "]
+        direction TB
+        b
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> d
+    b --> d
+    c --> d
+
+```
+
+```ts
+z(['a', 'b', 'c'], 'd')
+```
+
+</td>
+</tr>
+
+<tr><th>2 edges</th></tr>
+<tr valign="bottom">
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    b --> c
+
+```
+
+```ts
+z('a', ['b', 'c'])
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        c
+    end
+    subgraph y[" "]
+        direction TB
+        b
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+    a --> c
+
+```
+
+```ts
+z('a', 'b', 'c')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> c
+    b --> c
+```
+
+```ts
+z(['a', 'b'], 'c')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        b
+    end
+    subgraph y[" "]
+        direction TB
+        c
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> d
+    b --> c
+
+```
+
+```ts
+z('a', 'd'), z('b', 'c')
+```
+
+</td>
+</tr>
+
+<tr><th>1 edge</th></tr>
+<tr><td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        c
+    end
+    subgraph y[" "]
+        direction TB
+        b
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+    a --> b
+
+```
+
+```ts
+z('a', 'b')
+```
+
+</td></tr>
+
+<tr><th>0 edge</th></tr>
+<tr><td>
+
+```mermaid
+flowchart LR
+    subgraph x[" "]
+        direction TB
+        a
+        c
+    end
+    subgraph y[" "]
+        direction TB
+        b
+        d
+    end
+    a ~~~ b
+    c ~~~ d
+    style x fill:none,stroke:none
+    style y fill:none,stroke:none
+```
+
+```ts
+z(['a', 'b', 'c', 'd'])
+```
+
+</td></tr>
+</table>
+
 ### Topology: Five Nodes
 
 Five-vertex coverage extends chains, wide fans, multi-source funnels, diamonds with tails, interleaved ladders,
 balanced two-level trees, partial fans with extended child, mid-node splits, and zigzags with cross-links.
 Each construction confirms sorted order, equal stride between consecutive nodes in the topological sequence, and stable root-to-leaf monotonicity even as edges multiply.
 The tests validate that every key participates in the final ordering and that no hidden permutations violate declared constraints.
+
+<table>
+<tr><th>chain</th><th>wide fan</th><th>funnel</th><th>diamond tail</th></tr>
+<tr valign="bottom">
+<td>
+
+```mermaid
+flowchart LR
+    g[" "]
+    g ~~~ a
+    g ~~~ b
+    g ~~~ c
+    g ~~~ d
+    g ~~~ e
+    a --> b --> c --> d --> e
+    style g fill:none,stroke:none,color:none
+```
+
+```ts
+z('a', 'b', 'c', 'd', 'e')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    g[" "]
+    g ~~~ a
+    g ~~~ b
+    g ~~~ c
+    g ~~~ d
+    g ~~~ e
+    a --> b
+    a --> c
+    a --> d
+    a --> e
+    style g fill:none,stroke:none,color:none
+```
+
+```ts
+z('a', ['b', 'c', 'd', 'e'])
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    g[" "]
+    g ~~~ a
+    g ~~~ b
+    g ~~~ c
+    g ~~~ d
+    g ~~~ e
+    a --> e
+    b --> e
+    c --> e
+    d --> e
+    style g fill:none,stroke:none,color:none
+```
+
+```ts
+z(['a', 'b', 'c', 'd'], 'e')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    g[" "]
+    g ~~~ a
+    g ~~~ b
+    g ~~~ c
+    g ~~~ d
+    g ~~~ e
+    a --> b
+    a --> c
+    b --> d
+    c --> d
+    d --> e
+    style g fill:none,stroke:none,color:none
+```
+
+```ts
+z('a', 'b', 'c', 'd', 'e'), z('a', 'c', 'd')
+```
+
+</td>
+</tr>
+
+<tr><th>interleaved ladders</th><th>balanced two-level</th><th>fan with deep child</th><th>zigzag cross</th></tr>
+<tr valign="bottom">
+<td>
+
+```mermaid
+flowchart LR
+    g[" "]
+    g ~~~ a
+    g ~~~ b
+    g ~~~ c
+    g ~~~ d
+    g ~~~ e
+    a --> b
+    b --> e
+    a --> c
+    c --> d
+    d --> e
+    style g fill:none,stroke:none,color:none
+```
+
+```ts
+z('a', 'b', 'e'), z('a', 'c', 'd', 'e')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    g[" "]
+    g ~~~ a
+    g ~~~ b
+    g ~~~ c
+    g ~~~ d
+    g ~~~ e
+    a --> b
+    a --> c
+    b --> d
+    c --> e
+    style g fill:none,stroke:none,color:none
+```
+
+```ts
+z('a', ['b', 'c']), z('b', 'd'), z('c', 'e')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    g[" "]
+    g ~~~ a
+    g ~~~ b
+    g ~~~ c
+    g ~~~ d
+    g ~~~ e
+    a --> b
+    a --> c
+    a --> d
+    d --> e
+    style g fill:none,stroke:none,color:none
+```
+
+```ts
+z('a', ['b', 'c', 'd']), z('d', 'e')
+```
+
+</td>
+<td>
+
+```mermaid
+flowchart LR
+    g[" "]
+    g ~~~ a
+    g ~~~ b
+    g ~~~ c
+    g ~~~ d
+    g ~~~ e
+    a --> b
+    b --> c
+    a --> d
+    d --> e
+    c --> e
+    style g fill:none,stroke:none,color:none
+```
+
+```ts
+z('a', ['b', 'd']), z('b', 'e'), z('b', 'c', 'd')
+```
+
+</td>
+</tr>
+</table>
 
 ### Extension Stability
 
