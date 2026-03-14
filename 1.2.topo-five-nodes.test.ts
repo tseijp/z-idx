@@ -1,14 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { zIndex } from './index'
-
-const orderKeys = <K extends string>(ranks: Record<K, number>, keys: readonly K[]) => [...keys].sort((a, b) => ranks[a] - ranks[b])
-
-const uniformGap = <K extends string>(ranks: Record<K, number>, keys: readonly K[]) => {
-        const seq = orderKeys(ranks, keys)
-        const gap = ranks[seq[1]] - ranks[seq[0]]
-        for (let i = 2; i < seq.length; i += 1) expect(ranks[seq[i]] - ranks[seq[i - 1]]).toBe(gap)
-        return { seq, gap }
-}
+import { uniformGap } from './1.0.topo-three-nodes.test'
 
 describe('zidx topo features 1.2', () => {
         it('orders a five-node chain', () => {

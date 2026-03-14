@@ -7,10 +7,11 @@
                 "build": "npx tsup",
                 "preview": "vite preview",
                 "pub": "npx changeset publish",
-                "test": "npx vitest run"
+                "test": "npx vitest run --coverage"
         },
         "devDependencies": {
                 "@changesets/cli": "*",
+                "@vitest/coverage-v8": "*",
                 "typescript": "~5.9.3",
                 "tsup": "*",
                 "vite": "*",
