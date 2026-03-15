@@ -1,9 +1,9 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { zIndex } from './index'
+import index from './index'
 
-describe('zidx pair recursion 0.1', () => {
+describe('z index pair recursion 0.1', () => {
         it('links a parent to the root of a nested TaggedPairs chain', () => {
-                const res = zIndex((z) => {
+                const res = index((z) => {
                         const chain = z('b', 'c', 'd')
                         return [z('a', [chain, 'e'])]
                 })
@@ -31,7 +31,7 @@ describe('zidx pair recursion 0.1', () => {
         })
 
         it('keeps sibling spacing equal when multiple tagged subtrees share a parent', () => {
-                const res = zIndex((z) => {
+                const res = index((z) => {
                         const left = z('b', 'c')
                         const right = z('d', 'e')
                         return [z('a', [left, right])]
@@ -51,7 +51,7 @@ describe('zidx pair recursion 0.1', () => {
         })
 
         it('mixes a top-level chain with sibling arrays and keeps uniform gaps', () => {
-                const res = zIndex((z) => [z('a', 'b', 'c'), z('a', ['d', 'e']), z('c', ['f', 'g'])])
+                const res = index((z) => [z('a', 'b', 'c'), z('a', ['d', 'e']), z('c', ['f', 'g'])])
                 const step = res.b - res.a
 
                 expect(res.warns).toEqual([])
@@ -71,7 +71,7 @@ describe('zidx pair recursion 0.1', () => {
         })
 
         it('infers keys across combined linear, array, and nested tagged inputs', () => {
-                const res = zIndex((z) => {
+                const res = index((z) => {
                         const branch = z('d', ['e', 'f'])
                         return [z('a', 'b', 'c'), z('b', [branch, 'g'])]
                 })

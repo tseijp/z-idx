@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { zIndex } from './index'
+import index from "./index";
 
 const mid = (lo: number, up: number) => lo + ((up - lo) >> 1)
 
-describe('zidx ext/override 2.2', () => {
+describe('z index ext/override 2.2', () => {
         it('splits large exterior ranges around seeded ends', () => {
-                const base = zIndex((z) => [z('a', 'b')])
+                const base = index((z) => [z('a', 'b')])
                 const step = base.b - base.a
 
                 const next = base((z) => [z('d', 'a'), z('b', 'e')])
@@ -21,7 +21,7 @@ describe('zidx ext/override 2.2', () => {
         })
 
         it('clusters multiple inserts near the midpoint of a large gap', () => {
-                const base = zIndex((z) => [z('a', 'b')])
+                const base = index((z) => [z('a', 'b')])
                 const step = base.b - base.a
                 const center = base.a + (step >> 1)
 
@@ -39,7 +39,7 @@ describe('zidx ext/override 2.2', () => {
         })
 
         it('keeps seeds unchanged when mixing outer and inner inserts', () => {
-                const base = zIndex((z) => [z('a', 'b')])
+                const base = index((z) => [z('a', 'b')])
                 const step = base.b - base.a
 
                 const first = base((z) => [z('d', 'a'), z('a', 'c', 'b'), z('b', 'e')])
@@ -61,7 +61,7 @@ describe('zidx ext/override 2.2', () => {
         })
 
         it('packs multiple sibling gaps through chained overrides', () => {
-                const base = zIndex((z) => [z('root', ['left', 'mid', 'edge', 'right'])])
+                const base = index((z) => [z('root', ['left', 'mid', 'edge', 'right'])])
                 const step = base.mid - base.left
 
                 const first = base((z) => [[z('left', 'l1', 'mid')], [z('mid', 'm1', 'edge')], [z('edge', 'e1', 'right')]])
@@ -94,8 +94,8 @@ describe('zidx ext/override 2.2', () => {
         })
 
         it('throws on cycles without relying on warnings', () => {
-                expect(() => zIndex((z) => [z('a', 'b'), z('b', 'a')])).toThrow('cycle')
-                const base = zIndex((z) => [z('a', 'b')])
+                expect(() => index((z) => [z('a', 'b'), z('b', 'a')])).toThrow('cycle')
+                const base = index((z) => [z('a', 'b')])
                 expect(() => base((z) => [z('a', 'b'), z('b', 'a')])).toThrow('cycle')
         })
 })

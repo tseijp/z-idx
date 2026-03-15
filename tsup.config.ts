@@ -12,15 +12,11 @@ interface BuildTarget {
 const BUILD_TARGETS: BuildTarget[] = [
         {
                 format: 'cjs',
-                // https://github.com/egoist/tsup/issues/618
-                dts: {
-                        compilerOptions: {
-                                moduleResolution: 'bundler',
-                        },
-                },
+                dts: false,
         },
         {
                 format: 'esm',
+                dts: true,
         },
 ]
 
@@ -34,15 +30,22 @@ export const defaultConfig = (override: Options, options: Options) => {
                         ...options,
                         ...target,
                         ...override,
-                        outDir: './',
+                        outDir: 'dist',
                         splitting: false,
                         sourcemap: !options.watch,
                         clean: !options.watch,
                         minify: !options.watch,
                         target: 'es2020',
                         external: ['*'],
+                        entry: ['index.ts'],
+                        outExtension: ({ format }) => ({
+                                js: format === 'esm' ? '.mjs' : '.js',
+                                dts: '.d.ts',
+                        }),
                 }
         })
 
         return ret
 }
+
+export default (options: Options) => defaultConfig({}, options)

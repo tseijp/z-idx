@@ -184,8 +184,10 @@ const api = <K extends string>({ items, warns }: ZRes<K>): ZApi<K> => {
         }
         return Object.assign(ext, { ...items, warns })
 }
-export function zIndex<P extends readonly unknown[]>(build: (z: ZPair) => P): ZApi<Keys<P>> {
+export function index<P extends readonly unknown[]>(build: (z: ZPair) => P): ZApi<Keys<P>> {
         const pairs: Pair[] = []
         for (const item of build(pair)) flatten(item, pairs)
         return api<Keys<P>>(assign<Keys<P>>(pairs))
 }
+
+export default index;

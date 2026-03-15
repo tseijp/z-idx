@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { zIndex } from './index'
+import index from "./index";
 
 const mid = (lo: number, up: number) => lo + ((up - lo) >> 1)
 
-describe('zidx ext/override 2.0', () => {
+describe('z index ext/override 2.0', () => {
         it('keeps initial ranks stable across identical builds', () => {
-                const first = zIndex((z) => [z('a', 'b', 'c', 'd')])
-                const second = zIndex((z) => [z('a', 'b', 'c', 'd')])
+                const first = index((z) => [z('a', 'b', 'c', 'd')])
+                const second = index((z) => [z('a', 'b', 'c', 'd')])
 
                 const step = first.b - first.a
 
@@ -21,7 +21,7 @@ describe('zidx ext/override 2.0', () => {
         })
 
         it('keeps seeded ranks unchanged after extension inserts', () => {
-                const base = zIndex((z) => [z('a', 'b', 'c')])
+                const base = index((z) => [z('a', 'b', 'c')])
                 const step = base.b - base.a
 
                 const next = base((z) => [z('a', 'd', 'b')])
@@ -37,7 +37,7 @@ describe('zidx ext/override 2.0', () => {
         })
 
         it('keeps seeds fixed across multiple extensions', () => {
-                const base = zIndex((z) => [z('a', 'b', 'c')])
+                const base = index((z) => [z('a', 'b', 'c')])
                 const first = base((z) => [z('b', 'd', 'c')])
                 const second = first((z) => [z('a', 'e', 'd')])
 
@@ -55,7 +55,7 @@ describe('zidx ext/override 2.0', () => {
         })
 
         it('densely fills a seeded gap via chained overrides without shifting seeds', () => {
-                const base = zIndex((z) => [z('s0', 's1')])
+                const base = index((z) => [z('s0', 's1')])
                 const step = base.s1 - base.s0
 
                 const first = base((z) => [z('s0', 'x1', 's1')])
@@ -79,7 +79,7 @@ describe('zidx ext/override 2.0', () => {
         })
 
         it('keeps equal sibling spacing when using nested tree shorthand and inserts between them', () => {
-                const base = zIndex((z) => [z('root', ['s1', ['s2', 's3'], 's4'])])
+                const base = index((z) => [z('root', ['s1', ['s2', 's3'], 's4'])])
                 const step = base.s1 - base.root
 
                 expect(base.s2 - base.s1).toBe(step)

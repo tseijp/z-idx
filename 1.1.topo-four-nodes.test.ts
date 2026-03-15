@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { zIndex } from './index'
+import index  from "./index";
 import { uniformGap } from './1.0.topo-three-nodes.test'
 
-describe('zidx topo features 1.1', () => {
+describe('z inde topo features 1.1', () => {
         it('orders a four-node chain', () => {
-                const ranks = zIndex((z) => [z('a', 'b', 'c', 'd')])
+                const ranks = index((z) => [z('a', 'b', 'c', 'd')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd'])
 
                 expect(seq).toEqual(['a', 'b', 'c', 'd'])
@@ -15,7 +15,7 @@ describe('zidx topo features 1.1', () => {
         })
 
         it('spreads siblings evenly under a shared root', () => {
-                const ranks = zIndex((z) => [z('a', ['b', 'c', 'd'])])
+                const ranks = index((z) => [z('a', ['b', 'c', 'd'])])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd'])
 
                 expect(seq[0]).toBe('a')
@@ -26,7 +26,7 @@ describe('zidx topo features 1.1', () => {
         })
 
         it('forms a diamond that converges cleanly', () => {
-                const ranks = zIndex((z) => [z('a', 'b'), z('a', 'c'), z('b', 'd'), z('c', 'd')])
+                const ranks = index((z) => [z('a', 'b'), z('a', 'c'), z('b', 'd'), z('c', 'd')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd'])
 
                 expect(seq[0]).toBe('a')
@@ -39,7 +39,7 @@ describe('zidx topo features 1.1', () => {
         })
 
         it('branches then forks again one level deeper', () => {
-                const ranks = zIndex((z) => [z('a', 'b'), z('b', ['c', 'd'])])
+                const ranks = index((z) => [z('a', 'b'), z('b', ['c', 'd'])])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd'])
 
                 expect(seq[0]).toBe('a')
@@ -50,7 +50,7 @@ describe('zidx topo features 1.1', () => {
         })
 
         it('merges dual roots into a chain tail', () => {
-                const ranks = zIndex((z) => [z('a', 'c'), z('b', 'c'), z('c', 'd')])
+                const ranks = index((z) => [z('a', 'c'), z('b', 'c'), z('c', 'd')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd'])
 
                 expect(seq[seq.length - 1]).toBe('d')
@@ -61,7 +61,7 @@ describe('zidx topo features 1.1', () => {
         })
 
         it('keeps explicit sibling order when reversed', () => {
-                const ranks = zIndex((z) => [z('a', ['d', 'c', 'b'])])
+                const ranks = index((z) => [z('a', ['d', 'c', 'b'])])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd'])
 
                 expect(seq).toEqual(['a', 'd', 'c', 'b'])
@@ -72,7 +72,7 @@ describe('zidx topo features 1.1', () => {
         })
 
         it('adds a cross brace to the ladder while keeping spacing', () => {
-                const ranks = zIndex((z) => [z('a', 'b'), z('a', 'c'), z('b', 'c'), z('c', 'd')])
+                const ranks = index((z) => [z('a', 'b'), z('a', 'c'), z('b', 'c'), z('c', 'd')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd'])
 
                 expect(seq[0]).toBe('a')
@@ -84,7 +84,7 @@ describe('zidx topo features 1.1', () => {
         })
 
         it('lets two chains meet at the final node', () => {
-                const ranks = zIndex((z) => [z('a', 'b'), z('c', 'd'), z('b', 'd')])
+                const ranks = index((z) => [z('a', 'b'), z('c', 'd'), z('b', 'd')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd'])
 
                 expect(seq[seq.length - 1]).toBe('d')
@@ -95,7 +95,7 @@ describe('zidx topo features 1.1', () => {
         })
 
         it('supports parallel roots with independent tails', () => {
-                const ranks = zIndex((z) => [z('a', 'c'), z('b', 'd')])
+                const ranks = index((z) => [z('a', 'c'), z('b', 'd')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd'])
 
                 expect(seq).toEqual(['a', 'b', 'c', 'd'])

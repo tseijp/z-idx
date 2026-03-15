@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { zIndex } from './index'
+import index from "./index";
 
-describe('zidx pair inference 0.2', () => {
+describe('z index pair inference 0.2', () => {
         it('recurses through nested tagged subtrees and preserves uniform steps', () => {
-                const res = zIndex((z) => [z('a', [z('b', [z('c', 'd'), 'e']), z('f', ['g'])])])
+                const res = index((z) => [z('a', [z('b', [z('c', 'd'), 'e']), z('f', ['g'])])])
                 const step = res.b - res.a
 
                 // @TODO FIX narrow gap f
@@ -24,7 +24,7 @@ describe('zidx pair inference 0.2', () => {
         })
 
         it('keeps same-level siblings spaced equally across flat and nested arrays', () => {
-                const res = zIndex((z) => [z('a', [[['b', 'c']], ['d', 'e'], 'f'])])
+                const res = index((z) => [z('a', [[['b', 'c']], ['d', 'e'], 'f'])])
                 const step = res.b - res.a
 
                 expect(res.warns).toEqual([])
@@ -44,7 +44,7 @@ describe('zidx pair inference 0.2', () => {
         })
 
         it('mixes linear and tree forms across extensions while keeping seeds fixed', () => {
-                const base = zIndex((z) => [z('a', 'b', 'c')])
+                const base = index((z) => [z('a', 'b', 'c')])
                 const next = base((z) => [z('b', ['d', 'e']), z('c', 'f', 'g')])
 
                 // @TODO FIX narrow gap f
@@ -62,7 +62,7 @@ describe('zidx pair inference 0.2', () => {
         })
 
         it('infers full key sets after combining tagged, array, and linear inputs', () => {
-                const res = zIndex((z) => {
+                const res = index((z) => {
                         const nested = z('d', ['e', z('f', 'g')])
                         return [z('a', ['b', 'c']), z('b', [nested, 'h'])]
                 })

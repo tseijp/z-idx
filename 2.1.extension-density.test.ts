@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { zIndex } from './index'
+import index from "./index";
 
 const mid = (lo: number, up: number) => lo + ((up - lo) >> 1)
 
-describe('zidx ext/override 2.1', () => {
+describe('z index ext/override 2.1', () => {
         it('shrinks gaps with repeated midpoint insertions', () => {
-                const base = zIndex((z) => [z('a', 'b')])
+                const base = index((z) => [z("a", "b")]);
                 const step = base.b - base.a
 
                 const first = base((z) => [z('a', 'c', 'b')])
@@ -33,7 +33,7 @@ describe('zidx ext/override 2.1', () => {
         })
 
         it('keeps earlier insertions stable while gaps keep shrinking', () => {
-                const base = zIndex((z) => [z('a', 'b')])
+                const base = index((z) => [z('a', 'b')])
                 const step = base.b - base.a
 
                 const first = base((z) => [z('a', 'c', 'b')])
@@ -53,7 +53,7 @@ describe('zidx ext/override 2.1', () => {
         })
 
         it('supports incremental insertion on both sides of a midpoint', () => {
-                const base = zIndex((z) => [z('a', 'b')])
+                const base = index((z) => [z('a', 'b')])
                 const step = base.b - base.a
 
                 const first = base((z) => [z('a', 'c', 'b')])
@@ -73,7 +73,7 @@ describe('zidx ext/override 2.1', () => {
         })
 
         it('preserves ordering while insertions pack tighter', () => {
-                const base = zIndex((z) => [z('a', 'b')])
+                const base = index((z) => [z('a', 'b')])
                 const step = base.b - base.a
 
                 const first = base((z) => [z('a', 'c', 'b')])
@@ -90,7 +90,7 @@ describe('zidx ext/override 2.1', () => {
         })
 
         it('shrinks gaps on the right while keeping left seeds fixed', () => {
-                const base = zIndex((z) => [z('a', 'b')])
+                const base = index((z) => [z('a', 'b')])
                 const step = base.b - base.a
 
                 const first = base((z) => [z('a', 'c', 'b')])

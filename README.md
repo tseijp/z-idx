@@ -1,20 +1,20 @@
-# zidx
+# z-idx
 
 z-index DAG builder converting declarative stacking rules into stable numeric layers for shared UI libraries.
 
 ### Installation
 
 ```rb
-npm i zidx
+npm i z-idx
 ```
 
 ### Example
 
 <!-- prettier-ignore -->
 ```ts
-import zidx from 'zidx'
+import z-idx from 'z-idx'
 
-const base = zidx((z) => z('root', ['left', z('mid', ['bridge']), 'right']))
+const base = z-idx((z) => z('root', ['left', z('mid', ['bridge']), 'right']))
 
 const next = base((z) => [
   z('left', 'l1', 'mid'),
@@ -29,13 +29,13 @@ next.l1 // number between left and mid
 
 ### Purpose
 
-zidx turns declarative partial-order z-relations into numeric stacking ranks that stay stable when extended.
+z-idx turns declarative partial-order z-relations into numeric stacking ranks that stay stable when extended.
 It accepts linear chains parent-to-children trees, and nested TaggedPairs,
 lifting all key names into TypeScript inference so downstream packages share identical numbers even after override phases.
 
 ### Core Concepts
 
-A zIndex build receives a helper z. Passing multiple strings like z('a','b','c') emits ordered pairs `a<b<c` with uniform stride.
+A z-idx build receives a helper z. Passing multiple strings like z('a','b','c') emits ordered pairs `a<b<c` with uniform stride.
 Passing a parent and an array such as z('a',['b','c','d']) links the parent below each child while keeping siblings equally spaced.
 Nested arrays or previously returned TaggedPairs can be embedded, enabling tree-shaped DAGs without losing ordering.
 Ranks start with a wide STEP (1<<10) so later inserts can bisect gaps without moving seeded nodes.
@@ -44,14 +44,14 @@ clamps against seeded fences, then selects midpoints, pushing narrow gaps into w
 
 ### Type Inference
 
-zIndex returns an object that is both callable and map-like.Every key encountered during build is captured in the return type,
+z-idx returns an object that is both callable and map-like.Every key encountered during build is captured in the return type,
 allowing editors to suggest properties (`base.a`, `base.b`) and to hint previous keys during extension (`base((z)=>[z('b','x','c')])`).
 TaggedPairs preserve their embedded key set even when nested inside arrays, so deeply composed trees still surface full autocomplete.
 
 ### API Surface
 
 ```ts
-export function zIndex<P extends readonly unknown[]>(build: (z: ZPair) => P): ZApi<Keys<P>>
+(build: (z: ZPair) => P): ZApi<Keys<P>>
 ```
 
 `ZPair` supports two shapes. Linear form: `z(lower, mid, upper, ...)` creates consecutive relations.
@@ -1335,6 +1335,5 @@ Fence detection uses binary search to locate neighboring seeds and clamp candida
 
 ### Contributing and License
 
-The library is published as zidx on npm.
 Contributions should mirror the existing Vitest suites: pair basics, recursion, inference, topology (three through five nodes), extension stability, density, and packing.
 Each scenario should validate ordering, stride constancy, and seed preservation without relying on external fixtures.

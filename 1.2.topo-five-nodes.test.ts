@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { zIndex } from './index'
+import index from "./index";
 import { uniformGap } from './1.0.topo-three-nodes.test'
 
-describe('zidx topo features 1.2', () => {
+describe('z index topo features 1.2', () => {
         it('orders a five-node chain', () => {
-                const ranks = zIndex((z) => [z('a', 'b', 'c', 'd', 'e')])
+                const ranks = index((z) => [z('a', 'b', 'c', 'd', 'e')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
 
                 expect(seq).toEqual(['a', 'b', 'c', 'd', 'e'])
@@ -14,7 +14,7 @@ describe('zidx topo features 1.2', () => {
         })
 
         it('fans out from one root to four leaves', () => {
-                const ranks = zIndex((z) => [z('a', ['b', 'c', 'd', 'e'])])
+                const ranks = index((z) => [z('a', ['b', 'c', 'd', 'e'])])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
 
                 expect(seq[0]).toBe('a')
@@ -26,7 +26,7 @@ describe('zidx topo features 1.2', () => {
         })
 
         it('funnels four sources into one sink', () => {
-                const ranks = zIndex((z) => [z('a', 'e'), z('b', 'e'), z('c', 'e'), z('d', 'e')])
+                const ranks = index((z) => [z('a', 'e'), z('b', 'e'), z('c', 'e'), z('d', 'e')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
 
                 expect(seq[seq.length - 1]).toBe('e')
@@ -37,7 +37,7 @@ describe('zidx topo features 1.2', () => {
         })
 
         it('forms a diamond with a tail', () => {
-                const ranks = zIndex((z) => [z('a', 'b'), z('a', 'c'), z('b', 'd'), z('c', 'd'), z('d', 'e')])
+                const ranks = index((z) => [z('a', 'b'), z('a', 'c'), z('b', 'd'), z('c', 'd'), z('d', 'e')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
 
                 expect(seq[0]).toBe('a')
@@ -49,7 +49,7 @@ describe('zidx topo features 1.2', () => {
         })
 
         it('interleaves two ladders that meet at the end', () => {
-                const ranks = zIndex((z) => [z('a', 'b'), z('b', 'e'), z('a', 'c'), z('c', 'd'), z('d', 'e')])
+                const ranks = index((z) => [z('a', 'b'), z('b', 'e'), z('a', 'c'), z('c', 'd'), z('d', 'e')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
 
                 expect(seq[0]).toBe('a')
@@ -62,7 +62,7 @@ describe('zidx topo features 1.2', () => {
         })
 
         it('builds a balanced two-level tree', () => {
-                const ranks = zIndex((z) => [z('a', ['b', 'c']), z('b', 'd'), z('c', 'e')])
+                const ranks = index((z) => [z('a', ['b', 'c']), z('b', 'd'), z('c', 'e')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
 
                 expect(seq[0]).toBe('a')
@@ -75,7 +75,7 @@ describe('zidx topo features 1.2', () => {
         })
 
         it('fans out then extends one child further', () => {
-                const ranks = zIndex((z) => [z('a', ['b', 'c', 'd']), z('d', 'e')])
+                const ranks = index((z) => [z('a', ['b', 'c', 'd']), z('d', 'e')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
 
                 expect(seq[0]).toBe('a')
@@ -88,7 +88,7 @@ describe('zidx topo features 1.2', () => {
         })
 
         it('ties two sources into one mid node that splits again', () => {
-                const ranks = zIndex((z) => [z('a', 'c'), z('b', 'c'), z('c', ['d', 'e'])])
+                const ranks = index((z) => [z('a', 'c'), z('b', 'c'), z('c', ['d', 'e'])])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
 
                 expect(seq[2]).toBe('c')
@@ -101,7 +101,7 @@ describe('zidx topo features 1.2', () => {
         })
 
         it('weaves a zigzag with a cross-link to the sink', () => {
-                const ranks = zIndex((z) => [z('a', 'b'), z('b', 'c'), z('a', 'd'), z('d', 'e'), z('c', 'e')])
+                const ranks = index((z) => [z('a', 'b'), z('b', 'c'), z('a', 'd'), z('d', 'e'), z('c', 'e')])
                 const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
 
                 expect(seq[0]).toBe('a')

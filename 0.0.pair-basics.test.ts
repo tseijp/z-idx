@@ -1,9 +1,9 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { zIndex } from './index'
+import index from './index'
 
-describe('zidx pair basics 0.0', () => {
+describe('z index pair basics 0.0', () => {
         it('orders linear string chains with constant stride', () => {
-                const res = zIndex((z) => [z('a', 'b', 'c', 'd')])
+                const res = index((z) => [z('a', 'b', 'c', 'd')])
                 const stride = res.b - res.a
 
                 expect(res.warns).toEqual([])
@@ -15,7 +15,7 @@ describe('zidx pair basics 0.0', () => {
         })
 
         it('connects a parent to array children and keeps sibling spacing uniform', () => {
-                const res = zIndex((z) => [z('a', ['b', 'c', 'd'])])
+                const res = index((z) => [z('a', ['b', 'c', 'd'])])
                 const stride = res.b - res.a
 
                 expect(res.warns).toEqual([])
@@ -29,7 +29,7 @@ describe('zidx pair basics 0.0', () => {
 
         // @TODO FIX
         // it('treats nested arrays of siblings as the same level under one parent', () => {
-        //         const res = zIndex((z) => [
+        //         const res = index((z) => [
         //                 z('a', [
         //                         ['b', 'c'],
         //                         ['d', 'e'],
@@ -48,7 +48,7 @@ describe('zidx pair basics 0.0', () => {
         // })
 
         it('mixes linear and tree declarations in one build while keeping stride stable', () => {
-                const res = zIndex((z) => [z('a', 'b', 'c'), z('b', ['d', 'e'])])
+                const res = index((z) => [z('a', 'b', 'c'), z('b', ['d', 'e'])])
                 const stride = res.b - res.a
 
                 expect(res.warns).toEqual([])
@@ -62,7 +62,7 @@ describe('zidx pair basics 0.0', () => {
         })
 
         it('flattens mixed nested arrays into consistent ranks above the parent', () => {
-                const res = zIndex((z) => [z('a', ['b', ['c', 'd'], 'e'])])
+                const res = index((z) => [z('a', ['b', ['c', 'd'], 'e'])])
                 const stride = res.b - res.a
 
                 expect(res.warns).toEqual([])
@@ -76,7 +76,7 @@ describe('zidx pair basics 0.0', () => {
         })
 
         it('infers composite keys from linear and tree inputs together', () => {
-                const res = zIndex((z) => [z('a', 'b', 'c'), z('c', ['d', 'e'])])
+                const res = index((z) => [z('a', 'b', 'c'), z('c', ['d', 'e'])])
 
                 expect(res.warns).toEqual([])
                 expect(res.e).toBeGreaterThan(res.d)
