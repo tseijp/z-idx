@@ -5,14 +5,14 @@ import React from 'react'
 import { createPortal } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
-import { Prism, themes } from 'prism-react-renderer'
+import { themes } from 'prism-react-renderer'
 import './main.css'
 
-type CodeBlockProps = { code: string; language: string }
+type CodeBlockProps = { code: string; language: string; inline?: string }
 
-const CodeBlock = ({ code, language }: CodeBlockProps) => (
+const CodeBlock = ({ code, language, inline }: CodeBlockProps) => (
         <LiveProvider code={code} language={language} theme={themes.vsLight}>
-                <LiveEditor className="prism-code" />
+                <LiveEditor style={inline === '1' ? { display: 'inline-block', margin: '-10px -4px' } : undefined} />
         </LiveProvider>
 )
 
@@ -30,18 +30,10 @@ const LiveBlock = ({ code, language }: CodeBlockProps) => (
 
 const md = markdownit({ html: true, linkify: true, typographer: true })
 
-md.renderer.rules.code_inline = (tokens, idx) => {
-        const { content } = tokens[idx]
-        const grammar = Prism.languages.typescript
-        const html = grammar ? Prism.highlight(content, grammar, 'typescript') : content
-        return `<code class="language-typescript prism-code-inline">${html}</code>`
-}
-
+md.renderer.rules.code_inline = (tokens, idx) => `<code class="code-block" data-lang="ts" data-code="${encodeURIComponent(tokens[idx].content)}" data-inline="1"></code>`
 md.renderer.rules.fence = (tokens, idx) => {
-        const { info = '', content } = tokens[idx]
-        const [lang = 'text', ...flags] = info.trim().split(/\s+/).filter(Boolean)
-        const isLive = flags.includes('live') || flags.includes('react-live') || lang === 'tsx'
-        return `<div class="code-block" data-lang="${lang}" data-live="${isLive ? '1' : '0'}" data-code="${encodeURIComponent(content)}"></div>`
+        const { info, content } = tokens[idx]
+        return `<div class="code-block" data-lang="${info}" data-code="${encodeURIComponent(content)}"></div>`
 }
 
 const html = md.render(README)
@@ -55,11 +47,11 @@ const App = () => {
         }).current
         return (
                 <>
-                        <div ref={ref} className="markdown-body" />
+                        <main ref={ref} />
                         {blocks.map((el, i) => {
-                                const { code = '', lang = 'text', live = '0', id } = el.dataset
-                                const Component = live === '1' ? LiveBlock : CodeBlock
-                                return createPortal(<Component code={decodeURIComponent(code)} language={lang} />, el, id || `code-${i}`)
+                                const { code = '', lang = 'ts', inline = '0', id } = el.dataset
+                                const Component = lang === 'tsx' && inline !== '1' ? LiveBlock : CodeBlock
+                                return createPortal(<Component code={decodeURIComponent(code)} language={lang} inline={inline} />, el, id || `code-${i}`)
                         })}
                 </>
         )
