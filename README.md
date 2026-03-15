@@ -2,6 +2,26 @@
 
 z-index DAG builder converting declarative stacking rules into stable numeric layers for shared UI libraries.
 
+## Contents
+
+- [Getting Started](#getting-started)
+     - [Installation](#installation)
+     - [Example](#example)
+- [Rationale](#rationale)
+     - [Purpose](#purpose)
+     - [Core Concepts](#core-concepts)
+     - [Type Inference](#type-inference)
+     - [API Surface](#api-surface)
+- [Pair Catalogue](#pair-catalogue)
+     - [Pair Basics](#pair-basics)
+     - [Pair Recursion](#pair-recursion)
+     - [Pair Inference](#pair-inference)
+- [Topology Atlas](#topology-atlas)
+     - [Three Nodes](#three-nodes)
+     - [Four Nodes](#four-nodes)
+
+## Getting Started
+
 ### Installation
 
 ```
@@ -28,6 +48,8 @@ if (base.badge !== deck.badge) throw Error()
 
 render(<MenuPlayground ranks={deck} />)
 ```
+
+## Rationale
 
 ### Purpose
 
@@ -61,6 +83,8 @@ Tree form: `z(parent, childrenArray)` where childrenArray may contain strings, n
 or TaggedPairs; siblings share equal rank stride and retain declared order.
 Returned `ZApi` is callable for extension; it also exposes numeric ranks and a `warns` array.
 
+## Pair Catalogue
+
 ### Pair Basics
 
 Deterministic stride across linear chains: `z('a','b','c','d')` yields ascending ranks with constant gap.
@@ -85,7 +109,9 @@ Extensions that combine chain and tree forms leave seeds untouched while placing
 new keys remain greater than their lower bounds and below preserved uppers.
 Further composition (`z('a',['b','c']), z('b',[z('d',['e',z('f','g')]),'h'])`) keeps all eight keys ordered and accessible on the returned API.
 
-### Topology: Three Nodes
+## Topology Atlas
+
+### Three Nodes
 
 All six non-isomorphic DAG shapes for three vertices are expressible.
 Straight chain `a<b<c` stays sorted.
@@ -207,7 +233,7 @@ z('a', 'b', 'c'), z('a', 'c')
 </tr>
 </table>
 
-### Topology: Four Nodes
+### Four Nodes
 
 The catalogue of four-vertex DAGs (31 shapes) maps onto builds combining chains, fans, diamonds, ladders, and merged roots.
 Examples include diamond `a->b, a->c, b->d, c->d`, balanced forks `a->[b,c,d]`,

@@ -22,9 +22,8 @@ const menuTree: Node[] = [
                 id: 'docs',
                 label: 'Docs',
                 children: [
-                        { id: 'readme', label: 'README.md', note: 'English guide', action: () => runtime.render?.('en') },
-                        { id: 'readme-ja', label: 'README.ja.md', note: '日本語ガイド', action: () => runtime.render?.('ja') },
-                        { id: 'graph', label: 'Topology atlas', note: 'Mermaid diagrams', href: 'https://github.com/tseijp/z-idx#topology-four-nodes' },
+                        { id: 'lang-en', label: 'English', note: 'README.md', action: () => runtime.render?.('en') },
+                        { id: 'lang-ja', label: '日本語', note: 'README.ja.md', action: () => runtime.render?.('ja') },
                 ],
         },
         {
@@ -76,6 +75,16 @@ const menuTree: Node[] = [
                         { id: 'play', label: 'Live sandbox', note: 'Tweak ranks here' },
                         { id: 'switch', label: 'Flip language', note: 'Reset + remount', action: () => runtime.render?.('ja') },
                         { id: 'repo', label: 'Open repo', note: 'Browse commits', href: 'https://github.com/tseijp/z-idx/commits/main' },
+                ],
+        },
+        {
+                id: 'toc',
+                label: 'TOC',
+                children: [
+                        { id: 'toc-start', label: 'Getting Started', note: 'Installation, Example', href: '#getting-started' },
+                        { id: 'toc-rationale', label: 'Rationale', note: 'Purpose, Core Concepts', href: '#rationale' },
+                        { id: 'toc-pairs', label: 'Pair Catalogue', note: 'Basics, Recursion, Inference', href: '#pair-catalogue' },
+                        { id: 'toc-topology', label: 'Topology Atlas', note: '3/4 node shapes', href: '#topology-atlas' },
                 ],
         },
 ]
