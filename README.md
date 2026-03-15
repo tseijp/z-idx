@@ -4,7 +4,7 @@ z-index DAG builder converting declarative stacking rules into stable numeric la
 
 ### Installation
 
-```rb
+```
 npm i z-idx
 ```
 

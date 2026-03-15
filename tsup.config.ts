@@ -6,7 +6,7 @@ import type { Options } from 'tsup'
  */
 interface BuildTarget {
         format: 'cjs' | 'esm'
-        dts?: object
+        dts?: boolean
 }
 
 const BUILD_TARGETS: BuildTarget[] = [
