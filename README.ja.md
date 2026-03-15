@@ -11,20 +11,22 @@ npm i z-idx
 ### 例
 
 <!-- prettier-ignore -->
-```ts
-import index from 'z-idx'
-
-const base = index((z) => z('root', ['left', z('mid', ['bridge']), 'right']))
-
-const next = base((z) => [
-  z('left', 'l1', 'mid'),
-  z('mid', 'm1', 'right'),
-  z('bridge', ['c1', 'c2'])
+```tsx
+const base = index((z) => [
+  z('menu bar', 'root overlay', 'primary menu'),
+  z('primary menu', ['secondary overlay', 'badge'])
 ])
 
-// シードを保持したまま型安全にアクセス
-next.root // base.root と同じ数値
-next.l1 // left と mid の間の数値
+const deck = base((z) => [
+  z('root overlay', 'legend box'),
+  z('secondary overlay', 'secondary menu'),
+  z('secondary menu', ['detail overlay', 'detail card']),
+  z('detail overlay', 'legend box')
+])
+
+if (base.badge !== deck.badge) throw Error()
+
+render(<MenuPlayground ranks={deck} />)
 ```
 
 ### 目的
