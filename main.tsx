@@ -11,13 +11,13 @@ import './main.css'
 type CodeBlockProps = { code: string; language: string }
 
 const CodeBlock = ({ code, language }: CodeBlockProps) => (
-        <LiveProvider code={code} language={(language || 'tsx').toLowerCase()} theme={themes.vsLight}>
-                <LiveEditor className="prism-code" disabled />
+        <LiveProvider code={code} language={language} theme={themes.vsLight}>
+                <LiveEditor className="prism-code" />
         </LiveProvider>
 )
 
 const LiveBlock = ({ code, language }: CodeBlockProps) => (
-        <LiveProvider code={code} language={language || 'tsx'} theme={themes.vsLight} scope={{ React }}>
+        <LiveProvider code={code} language={language} theme={themes.vsLight} scope={{ React }}>
                 <div className="live-block">
                         <LiveEditor className="prism-code" />
                         <div className="live-output">
