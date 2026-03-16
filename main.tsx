@@ -11,149 +11,120 @@ import { themes } from 'prism-react-renderer'
 import './main.css'
 
 type CodeBlockProps = { code: string; language: string; inline?: string }
-type Node = { id: string; label: string; href?: string; note?: string; action?: () => void; children?: Node[] }
+type NodeProps = { id: string; label: string; href?: string; note?: string; action?: () => void; children?: React.ReactNode }
+type NodeTree = Omit<NodeProps, 'children'> & { children?: NodeTree[] }
 type Layers = Record<string, number>
 type Legend = Record<string, string>
 
 const runtime: { render?: (lang: 'en' | 'ja') => void } = {}
+const NavNode = (_: NodeProps) => null
+const toTree = (input: React.ReactNode): NodeTree[] => {
+        const items: NodeTree[] = []
+        for (const child of React.Children.toArray(input)) {
+                if (!React.isValidElement(child)) continue
+                if (child.type === React.Fragment) {
+                        items.push(...toTree(child.props.children))
+                        continue
+                }
+                const props = child.props as NodeProps
+                const node: NodeTree = { id: props.id, label: props.label, href: props.href, note: props.note, action: props.action }
+                const kids = props.children ? toTree(props.children) : []
+                if (kids.length) node.children = kids
+                items.push(node)
+        }
+        return items
+}
+const menuSpec = (
+        <>
+                <NavNode id="docs" label="Docs">
+                        <NavNode id="lang-en" label="English" note="README.md" action={() => runtime.render?.('en')} />
+                        <NavNode id="lang-ja" label="日本語" note="README.ja.md" action={() => runtime.render?.('ja')} />
+                </NavNode>
+                <NavNode id="links" label="Links">
+                        <NavNode id="github" label="GitHub" note="Source">
+                                <NavNode id="github-code" label="Code" href="https://github.com/tseijp/z-idx"></NavNode>
+                                <NavNode id="github-issues" label="Issues" href="https://github.com/tseijp/z-idx/issues"></NavNode>
+                                <NavNode id="github-pulls" label="Pull Requests" href="https://github.com/tseijp/z-idx/pulls"></NavNode>
+                        </NavNode>
+                        <NavNode id="npm" label="npm" note="Package">
+                                <NavNode id="npm-readme" label="Readme" href="https://www.npmjs.com/package/z-idx" />
+                                <NavNode id="npm-dependencies" label="0 Dependencies" href="https://www.npmjs.com/package/z-idx?activeTab=dependencies" />
+                                <NavNode id="npm-versions" label="1 Versions" href="https://www.npmjs.com/package/z-idx?activeTab=versions" />
+                        </NavNode>
+                        <NavNode id="tseijp" label="@tseijp" note="Author">
+                                <NavNode id="tseijp-github" label="Github" note="@tseijp" href="https://twitter.com/tseijp"></NavNode>
+                                <NavNode id="tseijp-twitter" label="Twitter" note="@tseijp" href="https://twitter.com/tseijp"></NavNode>
+                                <NavNode id="tseijp-twitter" label="Website" note="tsei.jp" href="https://twitter.com/tseijp"></NavNode>
+                        </NavNode>
+                </NavNode>
+                <NavNode id="cases" label="Suites">
+                        <NavNode id="pair" label="Pair Catalogue" note="0.*.pair-*.test.ts">
+                                <NavNode id="pair-basics" label="pair-basics" note="0.0.pair-basics.test.ts" href="https://github.com/tseijp/z-idx/blob/main/0.0.pair-basics.test.ts" />
+                                <NavNode id="pair-recursion" label="pair-recursion" note="0.1.pair-recursion.test.ts" href="https://github.com/tseijp/z-idx/blob/main/0.1.pair-recursion.test.ts" />
+                                <NavNode id="pair-inference" label="pair-inference" note="0.2.pair-inference.test.ts" href="https://github.com/tseijp/z-idx/blob/main/0.2.pair-inference.test.ts" />
+                        </NavNode>
+                        <NavNode id="topo" label="Topology Atlas" note="1.*.topo-*-nodes.test.ts">
+                                <NavNode id="topo-three" label="topo-three-nodes" note="1.0.topo-three-nodes.test.ts" href="https://github.com/tseijp/z-idx/blob/main/1.0.topo-three-nodes.test.ts" />
+                                <NavNode id="topo-four" label="topo-four-nodes" note="1.1.topo-four-nodes.test.ts" href="https://github.com/tseijp/z-idx/blob/main/1.1.topo-four-nodes.test.ts" />
+                                <NavNode id="topo-five" label="topo-five-nodes" note="1.2.topo-five-nodes.test.ts" href="https://github.com/tseijp/z-idx/blob/main/1.2.topo-five-nodes.test.ts" />
+                        </NavNode>
+                        <NavNode id="ext" label="Extensions" note="2.*.extension-*.test.ts">
+                                <NavNode id="ext-stability" label="extension-stability" note="2.0.extension-stability.test.ts" href="https://github.com/tseijp/z-idx/blob/main/2.0.extension-stability.test.ts" />
+                                <NavNode id="ext-density" label="extension-density" note="2.1.extension-density.test.ts" href="https://github.com/tseijp/z-idx/blob/main/2.1.extension-density.test.ts" />
+                                <NavNode id="ext-packing" label="extension-packing" note="2.2.extension-packing.test.ts" href="https://github.com/tseijp/z-idx/blob/main/2.2.extension-packing.test.ts" />
+                        </NavNode>
+                </NavNode>
+                <NavNode id="toc" label="TOC">
+                        <NavNode id="toc-rationale" label="Rationale">
+                                <NavNode id="toc-core" label="Core Concepts" href="#core-concepts" />
+                                <NavNode id="toc-type" label="Type Inference" href="#type-inference" />
+                                <NavNode id="toc-api" label="API Surface" href="#api-surface" />
+                        </NavNode>
+                        <NavNode id="toc-pairs" label="Pair Catalogue">
+                                <NavNode id="toc-pair-basics" label="Pair Basics" href="#pair-basics" />
+                                <NavNode id="toc-pair-recursion" label="Pair Recursion" href="#pair-recursion" />
+                                <NavNode id="toc-pair-inference" label="Pair Inference" href="#pair-inference" />
+                        </NavNode>
+                        <NavNode id="toc-topology" label="Topology Atlas">
+                                <NavNode id="toc-three" label="Three Nodes" href="#three-nodes" />
+                                <NavNode id="toc-four" label="Four Nodes" href="#four-nodes" />
+                                <NavNode id="toc-five" label="Five Nodes" href="#five-nodes" />
+                        </NavNode>
+                        <NavNode id="toc-ext" label="Extensions">
+                                <NavNode id="toc-ext-stability" label="Extension Stability" href="#extension-stability" />
+                                <NavNode id="toc-ext-density" label="Extension Density" href="#extension-density" />
+                                <NavNode id="toc-ext-packing" label="Extension Packing" href="#extension-packing" />
+                        </NavNode>
+                        <NavNode id="toc-appendix" label="Appendix">
+                                <NavNode id="toc-design" label="Design Notes" href="#design-notes" />
+                                <NavNode id="toc-contrib" label="Contributing" href="#contributing" />
+                                <NavNode id="toc-license" label="License" href="#license" />
+                        </NavNode>
+                </NavNode>
+        </>
+)
+const menuTree = toTree(menuSpec)
 
-const menuTree: Node[] = [
-        {
-                id: 'docs',
-                label: 'Docs',
-                children: [
-                        { id: 'lang-en', label: 'English', note: 'README.md', action: () => runtime.render?.('en') },
-                        { id: 'lang-ja', label: '日本語', note: 'README.ja.md', action: () => runtime.render?.('ja') },
-                ],
-        },
-        {
-                id: 'links',
-                label: 'Links',
-                children: [
-                        { id: 'github', label: 'GitHub', note: 'Source', href: 'https://github.com/tseijp/z-idx' },
-                        { id: 'npm', label: 'npm', note: 'Package', href: 'https://www.npmjs.com/package/z-idx' },
-                        { id: 'twitter', label: '@tseijp', note: 'Author', href: 'https://twitter.com/tseijp' },
-                ],
-        },
-        {
-                id: 'cases',
-                label: 'Suites',
-                children: [
-                        {
-                                id: 'pair',
-                                label: '0.x pairs',
-                                children: [
-                                        { id: 'pair-basics', label: 'pair-basics', href: 'https://github.com/tseijp/z-idx/blob/main/0.0.pair-basics.test.ts' },
-                                        { id: 'pair-recursion', label: 'pair-recursion', href: 'https://github.com/tseijp/z-idx/blob/main/0.1.pair-recursion.test.ts' },
-                                        { id: 'pair-inference', label: 'pair-inference', href: 'https://github.com/tseijp/z-idx/blob/main/0.2.pair-inference.test.ts' },
-                                ],
-                        },
-                        {
-                                id: 'topo',
-                                label: '1.x topo',
-                                children: [
-                                        { id: 'topo-three', label: 'topo-three-nodes', href: 'https://github.com/tseijp/z-idx/blob/main/1.0.topo-three-nodes.test.ts' },
-                                        { id: 'topo-four', label: 'topo-four-nodes', href: 'https://github.com/tseijp/z-idx/blob/main/1.1.topo-four-nodes.test.ts' },
-                                        { id: 'topo-five', label: 'topo-five-nodes', href: 'https://github.com/tseijp/z-idx/blob/main/1.2.topo-five-nodes.test.ts' },
-                                ],
-                        },
-                        {
-                                id: 'ext',
-                                label: '2.x extensions',
-                                children: [
-                                        { id: 'ext-stability', label: 'extension-stability', href: 'https://github.com/tseijp/z-idx/blob/main/2.0.extension-stability.test.ts' },
-                                        { id: 'ext-density', label: 'extension-density', href: 'https://github.com/tseijp/z-idx/blob/main/2.1.extension-density.test.ts' },
-                                        { id: 'ext-packing', label: 'extension-packing', href: 'https://github.com/tseijp/z-idx/blob/main/2.2.extension-packing.test.ts' },
-                                ],
-                        },
-                ],
-        },
-        {
-                id: 'lab',
-                label: 'Lab',
-                children: [
-                        { id: 'play', label: 'Live sandbox', note: 'Tweak ranks here' },
-                        { id: 'switch', label: 'Flip language', note: 'Reset + remount', action: () => runtime.render?.('ja') },
-                        { id: 'repo', label: 'Open repo', note: 'Browse commits', href: 'https://github.com/tseijp/z-idx/commits/main' },
-                ],
-        },
-        {
-                id: 'toc',
-                label: 'TOC',
-                children: [
-                        {
-                                id: 'toc-rationale',
-                                label: 'Rationale',
-                                href: '#rationale',
-                                children: [
-                                        { id: 'toc-core', label: 'Core Concepts', href: '#core-concepts' },
-                                        { id: 'toc-type', label: 'Type Inference', href: '#type-inference' },
-                                        { id: 'toc-api', label: 'API Surface', href: '#api-surface' },
-                                ],
-                        },
-                        {
-                                id: 'toc-pairs',
-                                label: 'Pair Catalogue',
-                                href: '#pair-catalogue',
-                                children: [
-                                        { id: 'toc-pair-basics', label: 'Pair Basics', href: '#pair-basics' },
-                                        { id: 'toc-pair-recursion', label: 'Pair Recursion', href: '#pair-recursion' },
-                                        { id: 'toc-pair-inference', label: 'Pair Inference', href: '#pair-inference' },
-                                ],
-                        },
-                        {
-                                id: 'toc-topology',
-                                label: 'Topology Atlas',
-                                href: '#topology-atlas',
-                                children: [
-                                        { id: 'toc-three', label: 'Three Nodes', href: '#three-nodes' },
-                                        { id: 'toc-four', label: 'Four Nodes', href: '#four-nodes' },
-                                        { id: 'toc-five', label: 'Five Nodes', href: '#five-nodes' },
-                                ],
-                        },
-                        {
-                                id: 'toc-ext',
-                                label: 'Extensions',
-                                href: '#extensions',
-                                children: [
-                                        { id: 'toc-ext-stability', label: 'Extension Stability', href: '#extension-stability' },
-                                        { id: 'toc-ext-density', label: 'Extension Density', href: '#extension-density' },
-                                        { id: 'toc-ext-packing', label: 'Extension Packing', href: '#extension-packing' },
-                                ],
-                        },
-                        {
-                                id: 'toc-appendix',
-                                label: 'Appendix',
-                                href: '#appendix',
-                                children: [
-                                        { id: 'toc-design', label: 'Design Notes', href: '#design-notes' },
-                                        { id: 'toc-contrib', label: 'Contributing', href: '#contributing' },
-                                        { id: 'toc-license', label: 'License', href: '#license' },
-                                ],
-                        },
-                ],
-        },
-]
-
-const resolveNode = (nodes: Node[], path: string[]) => {
+const resolveNode = (nodes: NodeTree[], path: string[]) => {
         let branch = nodes
-        let current: Node | undefined
+        let current: NodeTree | undefined
         for (const id of path) {
                 current = branch.find((n) => n.id === id)
                 branch = current?.children || []
         }
         return current
 }
-const pickChildren = (nodes: Node[], path: string[], depth: number) => resolveNode(nodes, path.slice(0, depth + 1))?.children || []
+const pickChildren = (nodes: NodeTree[], path: string[], depth: number) => resolveNode(nodes, path.slice(0, depth + 1))?.children || []
 const frame = { position: 'relative', width: '100%', minHeight: '360px', padding: '24px', borderRadius: '16px', background: 'linear-gradient(120deg,#f7f8fb,#eef2f7)', boxShadow: '0 16px 48px rgba(15,23,42,0.12)', color: '#0f172a', overflow: 'hidden', fontFamily: '"SF Pro Display","Helvetica Neue",sans-serif' }
-const bar = { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: 'rgba(255,255,255,0.86)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.6)', boxShadow: '0 12px 32px rgba(15,23,42,0.14)' }
+const bar = { display: 'flex', alignItems: 'center', flexWrap: 'wrap' as const, gap: '12px', padding: '12px 14px', borderRadius: '14px', background: 'rgba(255,255,255,0.86)', border: '1px solid rgba(255,255,255,0.6)', boxShadow: '0 12px 32px rgba(15,23,42,0.14)' }
 const overlay = { position: 'absolute' as const, inset: 0, background: 'rgba(15,23,42,0.18)', backdropFilter: 'blur(6px)' }
-const panel = { position: 'absolute' as const, top: '68px', left: '12px', width: '240px', display: 'grid', gap: '8px', padding: '12px', background: 'rgba(255,255,255,0.94)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.6)', boxShadow: '0 18px 44px rgba(15,23,42,0.16)' }
-const side = { ...panel, left: '268px', width: '250px' }
-const card = { ...panel, left: '528px', width: '260px', padding: '16px', gap: '10px' }
+const panelBase = { position: 'absolute' as const, top: '68px', left: '12px', display: 'grid', gap: '8px', padding: '12px', background: 'rgba(255,255,255,0.94)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.6)', boxShadow: '0 18px 44px rgba(15,23,42,0.16)' }
+const panel = { ...panelBase, width: '240px' }
+const side = { ...panelBase, left: '268px', width: '250px' }
+const card = { ...panelBase, left: '528px', width: '260px', padding: '16px', gap: '10px' }
 const legendBox = { position: 'absolute' as const, bottom: '16px', right: '16px', width: '240px', padding: '12px', borderRadius: '12px', background: 'rgba(15,23,42,0.82)', color: '#e2e8f0', boxShadow: '0 10px 30px rgba(15,23,42,0.25)', display: 'grid', gap: '6px' }
-const chip = { border: '0', padding: '9px 11px', textAlign: 'left' as const, borderRadius: '10px', background: '#f8fafc', boxShadow: 'inset 0 0 0 1px rgba(15,23,42,0.08)', color: '#0f172a', fontWeight: 600, cursor: 'pointer' }
-const badge = { marginLeft: 'auto', padding: '6px 10px', borderRadius: '10px', background: 'linear-gradient(135deg,#2563eb,#22d3ee)', color: '#f8fafc', fontWeight: 700, letterSpacing: '0.4px', textDecoration: 'none' }
+const chip = { border: '0', padding: '9px 11px', borderRadius: '10px', textAlign: 'left' as const, background: '#f8fafc', boxShadow: 'inset 0 0 0 1px rgba(15,23,42,0.08)', color: '#0f172a', fontWeight: 600, cursor: 'pointer' }
+const badge = { marginLeft: 'auto', color: '#111827', fontWeight: 700, letterSpacing: '0.4px', textDecoration: 'none' }
 const tile = { padding: '10px 12px', borderRadius: '10px', background: '#f1f5f9', boxShadow: 'inset 0 0 0 1px rgba(15,23,42,0.06)', display: 'grid', alignItems: 'center', gap: '4px', cursor: 'pointer' }
 const note = { fontSize: '12px', color: '#475569' }
 const legendLine = { display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', lineHeight: 1.2 }
@@ -165,7 +136,7 @@ const MenuPlayground = ({ ranks, labels }: { ranks: Layers; labels?: Legend }) =
         const layer = (key: string) => ranks[key] ?? 0
         const openRoot = (id: string) => setPath([id])
         const close = (depth: number) => setPath((prev) => prev.slice(0, depth))
-        const drill = (depth: number, node: Node) => {
+        const drill = (depth: number, node: NodeTree) => {
                 if (node.action) node.action()
                 if (node.href) {
                         if (node.href.startsWith('#')) {
