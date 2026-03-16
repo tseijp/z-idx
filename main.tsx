@@ -14,10 +14,28 @@ type CodeBlockProps = { code: string; language: string; inline?: string }
 type NodeProps = { id: string; label: string; href?: string; note?: string; action?: () => void; children?: React.ReactNode }
 type NodeTree = Omit<NodeProps, 'children'> & { children?: NodeTree[] }
 type Layers = Record<string, number>
-type Legend = Record<string, string>
+type OverlayProps = { show: boolean; z: number; close: () => void }
+type PanelListProps = { items: NodeTree[]; drill: (node: NodeTree) => void }
+type PanelSlotProps = { show: boolean; z: number; width: 'w-240' | 'w-250' | 'w-260'; left: 'left-12' | 'left-268' | 'left-528'; gap: 'gap-x'; children: React.ReactNode }
 
 const runtime: { render?: (lang: 'en' | 'ja') => void } = {}
 const NavNode = (_: NodeProps) => null
+const Overlay = ({ show, z, close }: OverlayProps) => <div className="absolute inset-0 bg-overlay backdrop-6" style={{ zIndex: z, display: show ? 'block' : 'none' }} onClick={close} />
+const PanelSlot = ({ show, z, width, left, gap, children }: PanelSlotProps) => (
+        <div className={`absolute p-x ${width} top-68 ${left} grid ${gap} bg-white-strong rounded-2x shadow-xl`} style={{ zIndex: z, display: show ? 'grid' : 'none' }}>
+                {children}
+        </div>
+)
+const PanelList = ({ items, drill }: PanelListProps) => (
+        <>
+                {items.map((item) => (
+                        <div key={item.id} className="grid p-x items-center bg-tile rounded-x shadow-inset-soft cursor" onClick={() => drill(item)}>
+                                <div>{item.label}</div>
+                                <div className="fs-12 text-muted">{item.note}</div>
+                        </div>
+                ))}
+        </>
+)
 const toTree = (input: React.ReactNode): NodeTree[] => {
         const items: NodeTree[] = []
         for (const child of React.Children.toArray(input)) {
@@ -116,7 +134,7 @@ const resolveNode = (nodes: NodeTree[], path: string[]) => {
 }
 const pickChildren = (nodes: NodeTree[], path: string[], depth: number) => resolveNode(nodes, path.slice(0, depth + 1))?.children || []
 
-const MenuPlayground = ({ ranks, labels }: { ranks: Layers; labels?: Legend }) => {
+const MenuPlayground = ({ ranks }: { ranks: Layers }) => {
         const [path, setPath] = React.useState<string[]>([])
         const layer = (key: string) => ranks[key] ?? 0
         const openRoot = (id: string) => setPath([id])
@@ -139,57 +157,36 @@ const MenuPlayground = ({ ranks, labels }: { ranks: Layers; labels?: Legend }) =
         const panelOne = path.length ? pickChildren(menuTree, path, 0) : []
         const panelTwo = path.length > 1 ? pickChildren(menuTree, path, 1) : []
         const detail = path.length > 2 ? resolveNode(menuTree, path) : undefined
-        const legend = labels ? Object.entries(labels) : Object.entries(ranks).map(([k]) => [k, k])
         return (
-                <div className="frame">
-                        <div className="bar" style={{ zIndex: layer('menu bar') }}>
+                <div className="relative p-x w-full min-h-360 bg-grad rounded-3x shadow-lg text-ink overflow-hidden font-sf">
+                        <div className="flex p-x gap-x items-center wrap bg-white rounded-2x shadow-md" style={{ zIndex: layer('menu bar') }}>
                                 {menuTree.map((item) => (
-                                        <button key={item.id} className="chip" onClick={() => openRoot(item.id)}>
+                                        <button key={item.id} className="border-0 p-x bg-chip rounded-x shadow-inset text-left text-ink font-semibold cursor" onClick={() => openRoot(item.id)}>
                                                 {item.label}
                                         </button>
                                 ))}
-                                <a href="https://github.com/tseijp/z-idx" className="badge" style={{ zIndex: layer('badge') }} target="_blank" rel="noreferrer">
+                                <a href="https://github.com/tseijp/z-idx" className="ml-auto mr-x text-onyx font-bold tracking-04 no-underline" style={{ zIndex: layer('badge') }} target="_blank" rel="noreferrer">
                                         GitHub
                                 </a>
                         </div>
-                        <div className="overlay" style={{ zIndex: layer('root overlay'), display: path.length ? 'block' : 'none' }} onClick={() => close(0)} />
-                        <div className="panel panel-base" style={{ zIndex: layer('primary menu'), display: path.length ? 'grid' : 'none' }}>
-                                {panelOne.map((item) => (
-                                        <div key={item.id} className="tile" onClick={() => drill(0, item)}>
-                                                <div>{item.label}</div>
-                                                <div className="note">{item.note}</div>
-                                        </div>
-                                ))}
-                        </div>
-                        <div className="overlay" style={{ zIndex: layer('secondary overlay'), display: path.length > 1 ? 'block' : 'none' }} onClick={() => close(1)} />
-                        <div className="side panel-base" style={{ zIndex: layer('secondary menu'), display: path.length > 1 ? 'grid' : 'none' }}>
-                                {panelTwo.map((item) => (
-                                        <div key={item.id} className="tile" onClick={() => drill(1, item)}>
-                                                <div>{item.label}</div>
-                                                <div className="note">{item.note}</div>
-                                        </div>
-                                ))}
-                        </div>
-                        <div className="overlay" style={{ zIndex: layer('detail overlay'), display: path.length > 2 ? 'block' : 'none' }} onClick={() => close(2)} />
-                        <div className="card panel-base" style={{ zIndex: layer('detail card'), display: path.length > 2 ? 'grid' : 'none' }}>
+                        <Overlay show={!!path.length} z={layer('root overlay')} close={() => close(0)} />
+                        <PanelSlot show={!!path.length} z={layer('primary menu')} width="w-240" left="left-12" gap="gap-x">
+                                <PanelList items={panelOne} drill={(item) => drill(0, item)} />
+                        </PanelSlot>
+                        <Overlay show={path.length > 1} z={layer('secondary overlay')} close={() => close(1)} />
+                        <PanelSlot show={path.length > 1} z={layer('secondary menu')} width="w-250" left="left-268" gap="gap-x">
+                                <PanelList items={panelTwo} drill={(item) => drill(1, item)} />
+                        </PanelSlot>
+                        <Overlay show={path.length > 2} z={layer('detail overlay')} close={() => close(2)} />
+                        <PanelSlot show={path.length > 2} z={layer('detail card')} width="w-260" left="left-528" gap="gap-x">
                                 <div style={{ fontWeight: 700 }}>{detail?.label}</div>
-                                <div className="note">{detail?.note || 'Open a link to jump out.'}</div>
+                                <div className="fs-12 text-muted">{detail?.note || 'Open a link to jump out.'}</div>
                                 {detail?.href ? (
-                                        <a href={detail.href} className="detail-link" target="_blank" rel="noreferrer">
+                                        <a href={detail.href} className="text-link font-bold no-underline" target="_blank" rel="noreferrer">
                                                 Open
                                         </a>
                                 ) : null}
-                        </div>
-                        <div className="legend-box" style={{ zIndex: layer('legend box'), display: legend.length ? 'grid' : 'none' }}>
-                                {legend.map(([key, text]) => (
-                                        <div key={key} className="legend-line">
-                                                <span className="dot" />
-                                                <span>{key}</span>
-                                                <span>{text}</span>
-                                                <span className="num">{ranks[key]}</span>
-                                        </div>
-                                ))}
-                        </div>
+                        </PanelSlot>
                 </div>
         )
 }
