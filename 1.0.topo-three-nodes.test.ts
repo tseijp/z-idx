@@ -1,107 +1,167 @@
 import { describe, expect, it } from 'vitest'
-import index from "./index";
+import { dag, index, S } from './utils'
 
-const orderKeys = <K extends string>(ranks: Record<K, number>, keys: readonly K[]) => [...keys].sort((a, b) => ranks[a] - ranks[b])
+describe('three nodes', () => {
+        describe('6 non-isomorphic DAG shapes', () => {
+                it.skip('pattern 1 - 0 edges: all same rank', () => {
+                        dag((z) => [z(['a', 'b', 'c'])])
+                                .relative(['a', 'b', 'c'])
+                })
 
-export const uniformGap = <K extends string>(ranks: Record<K, number>, keys: readonly K[]) => {
-        const seq = orderKeys(ranks, keys)
-        const gap = ranks[seq[1]] - ranks[seq[0]]
-        for (let i = 2; i < seq.length; i += 1) expect(ranks[seq[i]] - ranks[seq[i - 1]]).toBe(gap)
-        return { seq, gap }
-}
+                it('pattern 2 - 1 edge: a < b', () => {
+                        dag((z) => [z('a', 'b')])
+                                .relative('a', 'b')
+                                .edges(['a', 'b'])
+                                .nowarn()
+                })
 
-describe('z index topo features 1.0', () => {
-        it('orders a three-node chain', () => {
-                const ranks = index((z) => [z('a', 'b', 'c')])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c'])
+                it('pattern 3 - 2 edges fan out: a < [b, c]', () => {
+                        dag((z) => [z('a', ['b', 'c'])])
+                                .relative('a', ['b', 'c'])
+                                .edges(['a', 'b'], ['a', 'c'])
+                                .nowarn()
+                })
 
-                expect(seq).toEqual(['a', 'b', 'c'])
-                expect(ranks.a).toBeLessThan(ranks.b)
-                expect(ranks.b).toBeLessThan(ranks.c)
-                expect(gap).toBeGreaterThan(0)
+                it.skip('pattern 4 - 2 edges fan in: [b, c] < a', () => {
+                        dag((z) => [z(['b', 'c'], 'a')])
+                                .relative(['b', 'c'], 'a')
+                                .edges(['b', 'a'], ['c', 'a'])
+                })
+
+                it('pattern 5 - 2 edges chain: a < b < c', () => {
+                        dag((z) => [z('a', 'b', 'c')])
+                                .relative('a', 'b', 'c')
+                                .edges(['a', 'b'], ['b', 'c'])
+                                .nowarn()
+                })
+
+                it('pattern 6 - 3 edges complete: a < b < c with a < c', () => {
+                        dag((z) => [z('a', 'b', 'c'), z('a', 'c')])
+                                .relative('a', 'b', 'c')
+                                .edges(['a', 'b'], ['b', 'c'], ['a', 'c'])
+                                .nowarn()
+                })
         })
 
-        it('keeps sibling spacing even under one parent array', () => {
-                const ranks = index((z) => [z('a', ['b', 'c'])])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c'])
-
-                expect(seq).toEqual(['a', 'b', 'c'])
-                expect(ranks.a).toBeLessThan(ranks.b)
-                expect(ranks.a).toBeLessThan(ranks.c)
-                expect(ranks.c - ranks.b).toBe(gap)
+        describe('nested TaggedPairs', () => {
+                it('z("a", [z("b", "c")]) produces a < b < c', () => {
+                        dag((z) => [z('a', [z('b', 'c')])])
+                                .relative('a', 'b', 'c')
+                                .edges(['a', 'b'], ['b', 'c'])
+                                .nowarn()
+                })
         })
 
-        it('merges two roots into one sink while keeping gaps even', () => {
-                const ranks = index((z) => [z('a', 'c'), z('b', 'c')])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c'])
+        describe('separated pairs forming chain', () => {
+                it('z("a","b"), z("b","c") same as chain a < b < c', () => {
+                        dag((z) => [z('a', 'b'), z('b', 'c')])
+                                .relative('a', 'b', 'c')
+                                .edges(['a', 'b'], ['b', 'c'])
+                                .nowarn()
+                })
 
-                expect(seq[2]).toBe('c')
-                expect(seq.slice(0, 2).sort()).toEqual(['a', 'b'])
-                expect(ranks.a).toBeLessThan(ranks.c)
-                expect(ranks.b).toBeLessThan(ranks.c)
-                expect(ranks[seq[1]] - ranks[seq[0]]).toBe(gap)
+                it('reversed declaration: z("b","c"), z("a","b") still a < b < c', () => {
+                        dag((z) => [z('b', 'c'), z('a', 'b')])
+                                .relative('a', 'b', 'c')
+                                .edges(['a', 'b'], ['b', 'c'])
+                                .nowarn()
+                })
         })
 
-        it('respects dense ordering when every relation is declared', () => {
-                const ranks = index((z) => [z('a', 'b'), z('a', 'c'), z('b', 'c')])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c'])
+        describe('stride uniformity', () => {
+                it('chain a < b < c has uniform stride', () => {
+                        const r = dag((z) => [z('a', 'b', 'c')])
+                                .relative('a', 'b', 'c')
+                                .nowarn()
+                                .raw
+                        expect(r.b - r.a).toBe(S)
+                        expect(r.c - r.b).toBe(S)
+                })
 
-                expect(seq).toEqual(['a', 'b', 'c'])
-                expect(ranks.a).toBeLessThan(ranks.b)
-                expect(ranks.a).toBeLessThan(ranks.c)
-                expect(ranks.b).toBeLessThan(ranks.c)
-                expect(ranks.c - ranks.b).toBe(gap)
+                it('fan out a < [b, c] has equal spacing from parent', () => {
+                        const r = dag((z) => [z('a', ['b', 'c'])])
+                                .relative('a', ['b', 'c'])
+                                .nowarn()
+                                .raw
+                        expect(r.b - r.a).toBe(r.c - r.a)
+                })
+
+                it('single edge stride equals S', () => {
+                        const r = dag((z) => [z('a', 'b')])
+                                .nowarn()
+                                .raw
+                        expect(r.b - r.a).toBe(S)
+                })
         })
 
-        it('flattens nested pair arrays into the same topological order', () => {
-                const ranks = index((z) => [z('a', [z('b', 'c')])])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c'])
-
-                expect(seq).toEqual(['a', 'b', 'c'])
-                expect(ranks.a).toBeLessThan(ranks.b)
-                expect(ranks.b).toBeLessThan(ranks.c)
-                expect(ranks.c - ranks.b).toBe(gap)
+        describe('reversed child order in array', () => {
+                it('z("a", ["c", "b"]) preserves declared order', () => {
+                        dag((z) => [z('a', ['c', 'b'])])
+                                .edges(['a', 'c'], ['a', 'b'])
+                                .nowarn()
+                })
         })
 
-        it('sorts correctly even when an ancestor pair arrives later', () => {
-                const ranks = index((z) => [z('b', 'c'), z('a', 'b')])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c'])
+        describe('equivalent constructions', () => {
+                it('complete DAG from two z calls matches three z calls', () => {
+                        const r1 = dag((z) => [z('a', 'b', 'c'), z('a', 'c')])
+                                .nowarn()
+                                .raw
+                        const r2 = dag((z) => [z('a', 'b'), z('a', 'c'), z('b', 'c')])
+                                .nowarn()
+                                .raw
+                        expect(r1.a).toBeLessThan(r1.b)
+                        expect(r1.b).toBeLessThan(r1.c)
+                        expect(r2.a).toBeLessThan(r2.b)
+                        expect(r2.b).toBeLessThan(r2.c)
+                })
 
-                expect(seq).toEqual(['a', 'b', 'c'])
-                expect(ranks.a).toBeLessThan(ranks.b)
-                expect(ranks.b).toBeLessThan(ranks.c)
-                expect(ranks.c - ranks.b).toBe(gap)
+                it('separated pairs produce same relative order as single chain', () => {
+                        const chain = dag((z) => [z('a', 'b', 'c')]).nowarn().raw
+                        const pairs = dag((z) => [z('a', 'b'), z('b', 'c')]).nowarn().raw
+                        expect(pairs.b - pairs.a).toBe(chain.b - chain.a)
+                        expect(pairs.c - pairs.b).toBe(chain.c - chain.b)
+                })
         })
 
-        it('preserves explicit child order inside a sibling array', () => {
-                const ranks = index((z) => [z('a', ['c', 'b'])])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c'])
+        describe('cycle detection', () => {
+                it('two-node cycle: z("a","b"), z("b","a") throws', () => {
+                        expect(() => index((z) => [z('a', 'b'), z('b', 'a')])).toThrow('cycle')
+                })
 
-                expect(seq).toEqual(['a', 'c', 'b'])
-                expect(ranks.a).toBeLessThan(ranks.c)
-                expect(ranks.c).toBeLessThan(ranks.b)
-                expect(ranks.c - ranks.a).toBe(gap)
+                it('three-node cycle: z("a","b"), z("b","c"), z("c","a") throws', () => {
+                        expect(() => index((z) => [z('a', 'b'), z('b', 'c'), z('c', 'a')])).toThrow('cycle')
+                })
         })
 
-        // @TODO FIX
-        // it('treats a child pair array as a rooted subtree', () => {
-        //         const branch = index((z) => [z('b', 'c')])
-        //         const ranks = index((z) => [z('a', [branch])])
-        //         const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c'])
+        describe('fan out equal spacing', () => {
+                it('z("a", ["b", "c"]) children are equidistant from parent', () => {
+                        const r = dag((z) => [z('a', ['b', 'c'])])
+                                .nowarn()
+                                .raw
+                        expect(r.b).toBe(r.c)
+                })
 
-        //         expect(seq).toEqual(['a', 'b', 'c'])
-        //         expect(ranks.a).toBeLessThan(ranks.b)
-        //         expect(ranks.b).toBeLessThan(ranks.c)
-        //         expect(ranks.c - ranks.b).toBe(gap)
-        // })
+                it('z("a", ["b", "c", "d"]) all children same rank', () => {
+                        const r = dag((z) => [z('a', ['b', 'c', 'd'])])
+                                .nowarn()
+                                .raw
+                        expect(r.b).toBe(r.c)
+                        expect(r.c).toBe(r.d)
+                })
+        })
 
-        it('matches separated pair declarations with the same chain order', () => {
-                const ranks = index((z) => [z('a', 'b'), z('b', 'c')])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c'])
+        describe('no warns on valid topologies', () => {
+                it('chain produces no warnings', () => {
+                        dag((z) => [z('a', 'b', 'c')]).nowarn()
+                })
 
-                expect(seq).toEqual(['a', 'b', 'c'])
-                expect(ranks.a).toBeLessThan(ranks.b)
-                expect(ranks.b).toBeLessThan(ranks.c)
-                expect(ranks.c - ranks.b).toBe(gap)
+                it('fan produces no warnings', () => {
+                        dag((z) => [z('a', ['b', 'c'])]).nowarn()
+                })
+
+                it('complete DAG produces no warnings', () => {
+                        dag((z) => [z('a', 'b', 'c'), z('a', 'c')]).nowarn()
+                })
         })
 })

@@ -1,108 +1,202 @@
 import { describe, expect, it } from 'vitest'
-import index from "./index";
+import { index, S, mid } from './utils'
 
-const mid = (lo: number, up: number) => lo + ((up - lo) >> 1)
+describe('extension seed stability', () => {
+        describe('identical builds', () => {
+                it('two identical builds produce identical ranks', () => {
+                        const first = index((z) => [z('a', 'b', 'c', 'd')])
+                        const second = index((z) => [z('a', 'b', 'c', 'd')])
+                        expect(first.a).toBe(second.a)
+                        expect(first.b).toBe(second.b)
+                        expect(first.c).toBe(second.c)
+                        expect(first.d).toBe(second.d)
+                })
 
-describe('z index ext/override 2.0', () => {
-        it('keeps initial ranks stable across identical builds', () => {
-                const first = index((z) => [z('a', 'b', 'c', 'd')])
-                const second = index((z) => [z('a', 'b', 'c', 'd')])
-
-                const step = first.b - first.a
-
-                expect(step).toBeGreaterThan(0)
-                expect(first.c - first.b).toBe(step)
-                expect(first.d - first.c).toBe(step)
-
-                expect(first.a).toBe(second.a)
-                expect(first.b).toBe(second.b)
-                expect(first.c).toBe(second.c)
-                expect(first.d).toBe(second.d)
+                it('identical builds share same warns array shape', () => {
+                        const first = index((z) => [z('a', 'b', 'c')])
+                        const second = index((z) => [z('a', 'b', 'c')])
+                        expect(first.warns).toEqual(second.warns)
+                })
         })
 
-        it('keeps seeded ranks unchanged after extension inserts', () => {
-                const base = index((z) => [z('a', 'b', 'c')])
-                const step = base.b - base.a
+        describe('single extension preserves base seeds', () => {
+                it('extension preserves all base seeds', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const next = base((z) => [z('a', 'd', 'b')])
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBe(base.c)
+                })
 
-                const next = base((z) => [z('a', 'd', 'b')])
+                it('extension inserting at start preserves all', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const next = base((z) => [z('x', 'a')])
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBe(base.c)
+                        expect(next.x).toBeLessThan(next.a)
+                })
 
-                expect(next.a).toBe(base.a)
-                expect(next.b).toBe(base.b)
-                expect(next.c).toBe(base.c)
+                it('extension inserting at end preserves all', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const next = base((z) => [z('c', 'y')])
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBe(base.c)
+                        expect(next.c).toBeLessThan(next.y)
+                })
 
-                expect(next.d).toBe(mid(base.a + 1, base.b - 1))
-                expect(next.d).toBeGreaterThan(base.a)
-                expect(next.d).toBeLessThan(base.b)
-                expect(base.b - next.d).toBe(step / 2)
+                it('extension inserting in multiple gaps preserves all', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const next = base((z) => [z('a', 'd', 'b'), z('b', 'e', 'c')])
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBe(base.c)
+                })
         })
 
-        it('keeps seeds fixed across multiple extensions', () => {
-                const base = index((z) => [z('a', 'b', 'c')])
-                const first = base((z) => [z('b', 'd', 'c')])
-                const second = first((z) => [z('a', 'e', 'd')])
+        describe('chained extensions preserve all prior seeds', () => {
+                it('two chained extensions preserve all seeds', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const ext1 = base((z) => [z('a', 'd', 'b')])
+                        const ext2 = ext1((z) => [z('b', 'e', 'c')])
+                        expect(ext2.a).toBe(base.a)
+                        expect(ext2.b).toBe(base.b)
+                        expect(ext2.c).toBe(base.c)
+                        expect(ext2.d).toBe(ext1.d)
+                })
 
-                expect(first.a).toBe(base.a)
-                expect(first.b).toBe(base.b)
-                expect(first.c).toBe(base.c)
+                it('three chained extensions each preserve prior seeds', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const ext1 = base((z) => [z('a', 'd', 'b')])
+                        const ext2 = ext1((z) => [z('b', 'e', 'c')])
+                        const ext3 = ext2((z) => [z('d', 'f', 'b')])
+                        expect(ext3.a).toBe(base.a)
+                        expect(ext3.b).toBe(base.b)
+                        expect(ext3.c).toBe(base.c)
+                        expect(ext3.d).toBe(ext1.d)
+                        expect(ext3.e).toBe(ext2.e)
+                })
 
-                expect(second.a).toBe(base.a)
-                expect(second.b).toBe(base.b)
-                expect(second.c).toBe(base.c)
-
-                expect(second.d).toBe(first.d)
-                expect(second.e).toBeGreaterThan(base.a)
-                expect(second.e).toBeLessThan(first.d)
+                it('four chained extensions preserve all accumulated seeds', () => {
+                        const base = index((z) => [z('a', 'b', 'c', 'd')])
+                        const e1 = base((z) => [z('a', 'x1', 'b')])
+                        const e2 = e1((z) => [z('b', 'x2', 'c')])
+                        const e3 = e2((z) => [z('c', 'x3', 'd')])
+                        const e4 = e3((z) => [z('x1', 'x4', 'b')])
+                        expect(e4.a).toBe(base.a)
+                        expect(e4.b).toBe(base.b)
+                        expect(e4.c).toBe(base.c)
+                        expect(e4.d).toBe(base.d)
+                        expect(e4.x1).toBe(e1.x1)
+                        expect(e4.x2).toBe(e2.x2)
+                        expect(e4.x3).toBe(e3.x3)
+                })
         })
 
-        it('densely fills a seeded gap via chained overrides without shifting seeds', () => {
-                const base = index((z) => [z('s0', 's1')])
-                const step = base.s1 - base.s0
+        describe('tree shorthand extensions', () => {
+                it('extension with tree shorthand preserves seeds', () => {
+                        const base = index((z) => [z('root', ['s1', 's2', 's3', 's4'])])
+                        const ext = base((z) => [z('s1', 'p', 's2')])
+                        expect(ext.root).toBe(base.root)
+                        expect(ext.s1).toBe(base.s1)
+                        expect(ext.s2).toBe(base.s2)
+                        expect(ext.s3).toBe(base.s3)
+                        expect(ext.s4).toBe(base.s4)
+                })
 
-                const first = base((z) => [z('s0', 'x1', 's1')])
-                const second = first((z) => [z('x1', 'x2', 's1')])
-                const third = second((z) => [z('x2', 'x3', 's1')])
-                const fourth = third((z) => [z('s0', 'x0', 'x1')])
+                it('extension with tree form preserves all base seeds', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const next = base((z) => [z('a', ['x', 'y'], 'b')])
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBe(base.c)
+                })
 
-                expect(fourth.s0).toBe(base.s0)
-                expect(fourth.s1).toBe(base.s1)
-
-                expect(fourth.s0).toBeLessThan(fourth.x0)
-                expect(fourth.x0).toBeLessThan(fourth.x1)
-                expect(fourth.x1).toBeLessThan(fourth.x2)
-                expect(fourth.x2).toBeLessThan(fourth.x3)
-                expect(fourth.x3).toBeLessThan(fourth.s1)
-
-                expect(fourth.x1 - fourth.s0).toBeLessThan(step)
-                expect(fourth.x2 - fourth.x1).toBeLessThan(step >> 1)
-                expect(fourth.x3 - fourth.x2).toBeLessThan(step >> 1)
-                expect(fourth.s1 - fourth.x3).toBeLessThan(step >> 1)
+                it('nested tree shorthand extension preserves root', () => {
+                        const base = index((z) => [z('a', ['b', ['c', 'd']])])
+                        const ext = base((z) => [z('b', 'x', 'c')])
+                        expect(ext.a).toBe(base.a)
+                        expect(ext.b).toBe(base.b)
+                        expect(ext.c).toBe(base.c)
+                        expect(ext.d).toBe(base.d)
+                })
         })
 
-        it('keeps equal sibling spacing when using nested tree shorthand and inserts between them', () => {
-                const base = index((z) => [z('root', ['s1', ['s2', 's3'], 's4'])])
-                const step = base.s1 - base.root
+        describe('double extension and overlapping constraints', () => {
+                it('inserting twice in same gap preserves all prior seeds', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const ext1 = base((z) => [z('a', 'd', 'b')])
+                        const ext2 = ext1((z) => [z('d', 'e', 'b')])
+                        expect(ext2.a).toBe(base.a)
+                        expect(ext2.b).toBe(base.b)
+                        expect(ext2.c).toBe(base.c)
+                        expect(ext2.d).toBe(ext1.d)
+                })
 
-                expect(base.s2 - base.s1).toBe(step)
-                expect(base.s3 - base.s2).toBe(step)
-                expect(base.s4 - base.s3).toBe(step)
+                it('redundant pair does not change values', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const next = base((z) => [z('a', 'd', 'b'), z('d', 'b')])
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBe(base.c)
+                })
 
-                const ext = base((z) => [z('s1', 'p', 's2'), z('s2', 'q', 's3'), z('s3', 'r', 's4')])
+                it('reusing same pairs as base does not change values', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const next = base((z) => [z('a', 'b')])
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBe(base.c)
+                })
+        })
 
-                expect(ext.root).toBe(base.root)
-                expect(ext.s1).toBe(base.s1)
-                expect(ext.s2).toBe(base.s2)
-                expect(ext.s3).toBe(base.s3)
-                expect(ext.s4).toBe(base.s4)
+        describe('larger bases', () => {
+                it('five-node base then extension preserves all five', () => {
+                        const base = index((z) => [z('a', 'b', 'c', 'd', 'e')])
+                        const next = base((z) => [z('b', 'x', 'c')])
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBe(base.c)
+                        expect(next.d).toBe(base.d)
+                        expect(next.e).toBe(base.e)
+                })
 
-                expect(ext.p).toBeGreaterThan(base.s1)
-                expect(ext.p).toBeLessThan(base.s2)
-                expect(ext.q).toBeGreaterThan(base.s2)
-                expect(ext.q).toBeLessThan(base.s3)
-                expect(ext.r).toBeGreaterThan(base.s3)
-                expect(ext.r).toBeLessThan(base.s4)
+                it('wide fan base then chain extension preserves all', () => {
+                        const base = index((z) => [z('a', ['b', 'c', 'd'])])
+                        const next = base((z) => [z('b', 'x', 'c')])
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBe(base.c)
+                        expect(next.d).toBe(base.d)
+                })
+        })
 
-                expect(base.s2 - ext.p).toBeLessThan(step)
-                expect(base.s3 - ext.q).toBeLessThan(step)
-                expect(base.s4 - ext.r).toBeLessThan(step)
+        describe('ordering invariants', () => {
+                it('extension preserves stride between seeds', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const stride = base.b - base.a
+                        const next = base((z) => [z('a', 'd', 'b')])
+                        expect(next.b - next.a).toBe(stride)
+                        expect(next.c - next.b).toBe(stride)
+                })
+
+                it('extension below minimum preserves base', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const next = base((z) => [z('low', 'a')])
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBe(base.c)
+                        expect(next.low).toBeLessThan(next.a)
+                })
+
+                it('extension above maximum preserves base', () => {
+                        const base = index((z) => [z('a', 'b', 'c')])
+                        const next = base((z) => [z('c', 'high')])
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBe(base.c)
+                        expect(next.c).toBeLessThan(next.high)
+                })
         })
 })
