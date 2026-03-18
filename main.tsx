@@ -267,10 +267,18 @@ createRoot(document.getElementById('app')!).render(<App />)
 // @ts-ignore
 window.index = index
 
-const ng = index((z) => z('a', 'b', 'c'))
-
-const ok = index((z) => [z('a', 'b', 'c')])
-
-const ng2 = index((z) => z('a', 'b', 'c'))
+const ok = index((z) => z('a', 'b', 'c'))
 
 const ok2 = index((z) => [z('a', 'b', 'c')])
+
+const ng = index((z) => z(['a', 'b'], 'c'))
+
+const ng2 = index((z) => [z(['a', 'b'], 'c')])
+
+const ok3 = index((z) => z('a', z('b', 'c')))
+
+const ok4 = index((z) => [z('a', z('b', 'c'))])
+
+const ng3 = index((z) => z('a', [z('b', 'c')]))
+
+const ng4 = index((z) => [z('a', [z('b', 'c')])])

@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { index } from './utils'
+import { dag, index } from './utils'
 
 describe('type inference and edge cases', () => {
         describe('expectTypeOf linear chain', () => {
@@ -8,6 +8,8 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                 })
 
                 it('single pair z("a","b") type has a:number, b:number', () => {
@@ -15,6 +17,8 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.warns).toEqualTypeOf<string[]>()
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                 })
         })
 
@@ -25,6 +29,8 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
                         expectTypeOf(res.d).toBeNumber()
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                 })
 
                 it('reversed array children type inference', () => {
@@ -33,6 +39,8 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
                         expectTypeOf(res.d).toBeNumber()
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                 })
         })
 
@@ -45,6 +53,8 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                 })
 
                 it('mixed inputs combines all keys', () => {
@@ -54,6 +64,8 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.c).toBeNumber()
                         expectTypeOf(res.d).toBeNumber()
                         expectTypeOf(res.e).toBeNumber()
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                 })
         })
 
@@ -65,6 +77,8 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(ext.b).toBeNumber()
                         expectTypeOf(ext.c).toBeNumber()
                         expectTypeOf(ext.d).toBeNumber()
+                        // @ts-expect-error
+                        expectTypeOf(ext._).toBeNumber()
                 })
 
                 it('extension type combines base + new keys', () => {
@@ -76,6 +90,8 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(next.d).toBeNumber()
                         expectTypeOf(next.e).toBeNumber()
                         expectTypeOf(next.f).toBeNumber()
+                        // @ts-expect-error
+                        expectTypeOf(next._).toBeNumber()
                 })
         })
 
@@ -90,6 +106,8 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.f).toBeNumber()
                         expectTypeOf(res.g).toBeNumber()
                         expectTypeOf(res.h).toBeNumber()
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                 })
         })
 
@@ -103,6 +121,8 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.e).toBeNumber()
                         expectTypeOf(res.f).toBeNumber()
                         expectTypeOf(res.g).toBeNumber()
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expect(res.a).toBeLessThan(res.b)
                         expect(res.a).toBeLessThan(res.f)
                         expect(res.b).toBeLessThan(res.c)
@@ -163,6 +183,8 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.f).toBeNumber()
                         expectTypeOf(res.g).toBeNumber()
                         expectTypeOf(res.h).toBeNumber()
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expect(res.a).toBeLessThan(res.b)
                         expect(res.a).toBeLessThan(res.c)
                         expect(res.b).toBeLessThan(res.d)
@@ -206,6 +228,8 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.r1).toBeNumber()
                         expectTypeOf(res.leaf3).toBeNumber()
                         expectTypeOf(res.leaf4).toBeNumber()
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expect(res.root).toBeLessThan(res.l1)
                         expect(res.root).toBeLessThan(res.r1)
                         expect(res.l1).toBeLessThan(res.l2a)
