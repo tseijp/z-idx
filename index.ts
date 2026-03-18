@@ -1,21 +1,27 @@
-type Pair = readonly [string, string]
+type Pair = [string, string]
 type Edge<T extends readonly unknown[] = readonly unknown[]> = readonly Pair[] & { [SYM]?: T }
 type Node = string | Function | Edge | readonly Node[]
 // prettier-ignore
-type KeysOf<T> = T extends string ? T :
-        T extends Edge<infer U> ? KeysOf<U> :
-        T extends readonly (infer R)[] ? KeysOf<R> :
+type _Keys<T> = T extends string ? T :
+        T extends Edge<infer U> ? _Keys<U> :
+        T extends readonly (infer R)[] ? _Keys<R> :
         T extends Function ? Exclude<keyof T, keyof Function> :
         never
 // prettier-ignore
-type Keys<P> =
-        P extends Edge<infer U> ? KeysOf<U> :
-        P extends readonly (infer R)[] ? Keys<R> :
+type Keys<Ret> =
+        Ret extends Edge<infer U> ? _Keys<U> :
+        Ret extends readonly (infer R)[] ? Keys<R> :
         never
+export type ZReq = unknown | unknown[] // Edge | Edge[] @TODO FIX: Instantiations: 29243 → 64816
 export type ZRes<K extends string = string> = Record<K, number>
 export type ZApi<K extends string = string> = ZExt<K> & ZRes<K>
-export type ZExt<K extends string = string> = <const P extends readonly unknown[]>(build: (z: ZFun) => P) => ZApi<K | Keys<P>>
-export type ZFun = <const T extends readonly Node[]>(...keys: T) => Edge<T>
+export type ZFun = {
+        <const T extends readonly string[]>(...args: T): Edge<T> // @MEMO Instantiations: 29637 →　29243
+        <const T extends readonly Node[]>(...args: T): Edge<T>
+}
+export type ZExt<K extends string = string> = {
+        <const Ret extends ZReq>(build: (z: ZFun) => Ret): ZApi<K | Keys<Ret>>
+}
 const SYM = Symbol('z')
 const INF = 1 << 30
 const STEP = 1 << 10
@@ -85,8 +91,8 @@ const collect = (v: unknown, out: Pair[]): void => {
 }
 const topo = (pairs: Pair[], extras: string[]) => {
         const succ = new Map<string, string[]>()
-        const indeg = new Map<string, number>()
         const preds = new Map<string, string[]>()
+        const indeg = new Map<string, number>()
         const add = (k: string) => {
                 if (!succ.has(k)) succ.set(k, [])
                 if (!indeg.has(k)) indeg.set(k, 0)
@@ -187,7 +193,7 @@ const api = (items: ZRes): ZApi => {
         }
         return Object.assign(ext, items)
 }
-export function index<const P extends readonly unknown[]>(build: (z: ZFun) => P): ZApi<Keys<P>> {
+export function index<const Ret extends ZReq>(build: (z: ZFun) => Ret): ZApi<Keys<Ret>> {
         const pairs: Pair[] = []
         collect(build(z as ZFun), pairs)
         return api(assign(pairs))
