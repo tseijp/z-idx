@@ -1,7 +1,7 @@
 type Pair = readonly [string, string]
 declare const ZTag: unique symbol
 type TaggedPairs<T extends readonly [unknown, ...unknown[]]> = Pair[] & { [ZTag]?: T }
-type Node = string | TaggedPairs<any> | readonly Node[]
+type Node = string | TaggedPairs<any> | readonly Node[] | ZApi<string>
 type KeysOf<T> = T extends string ? T : T extends TaggedPairs<infer U> ? KeysOf<U> : T extends readonly (infer R)[] ? KeysOf<R> : never
 type Keys<P> = P extends TaggedPairs<infer U> ? KeysOf<U> : P extends readonly (infer R)[] ? Keys<R> : never
 type ZRes<K extends string> = { items: Record<K, number>; warns: string[] }
@@ -26,6 +26,13 @@ const sources = (ps: Pair[]) => {
 }
 const gather = (n: Node): { entries: string[]; pairs: Pair[] } => {
         if (typeof n === 'string') return { entries: [n], pairs: [] }
+        if (typeof n === 'function') {
+                const keys = Object.keys(n as any).filter((k) => k !== 'warns')
+                const sorted = [...keys].sort((a, b) => ((n as any)[a] as number) - ((n as any)[b] as number))
+                const pairs: Pair[] = []
+                for (let i = 0; i < sorted.length - 1; i += 1) pairs.push([sorted[i], sorted[i + 1]])
+                return { entries: sorted, pairs }
+        }
         if (Array.isArray(n)) {
                 if (isPairs(n)) return { entries: sources(n), pairs: n }
                 const e: string[] = []

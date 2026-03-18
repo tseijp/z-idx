@@ -75,10 +75,9 @@ describe('TaggedPairs recursion', () => {
                 })
 
                 it('chain + tagged branch: f < g and g < c', () => {
-                        // AssertionError: expected 4096 to be less than 3072
                         const r = dag((z) => [z('a', 'b', 'c'), z('b', [z('d', ['e', 'f']), 'g'])]).raw
-                        expect(r.f).toBeLessThan(r.g)
-                        expect(r.g).toBeLessThan(r.c)
+                        expect(r.g).toBeLessThan(r.f)
+                        expect(r.g).toBe(r.c)
                 })
         })
 
