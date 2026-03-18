@@ -8,6 +8,7 @@ type ZRes<K extends string> = { items: Record<K, number>; warns: string[] }
 type ZExt<K extends string> = <P extends readonly unknown[]>(build: (z: ZPair) => P) => ZApi<K | Keys<P>>
 type ZApi<K extends string> = ZExt<K> & Record<K, number> & { warns: string[] }
 type ZPair = { <C extends readonly [Node, ...Node[]], A extends string>(lower: A, children: readonly [...C]): TaggedPairs<[A, ...C]>; <T extends readonly [Node, Node, ...Node[]]>(...keys: T): TaggedPairs<T> }
+const INF = 1 << 30
 const STEP = 1 << 10
 const START = STEP
 const GAP_WARN = STEP >> 4
@@ -28,7 +29,7 @@ const sources = (ps: Pair[]) => {
 const gather = (n: Node): EP => {
         if (typeof n === 'string') return { entries: [n], pairs: [] }
         if (typeof n === 'function') {
-                const ks = Object.keys(n as any)
+                const ks = Object.keys(n)
                         .filter((k) => k !== 'warns')
                         .sort((a, b) => ((n as any)[a] as number) - ((n as any)[b] as number))
                 const p: Pair[] = []
@@ -112,15 +113,15 @@ const assign = <K extends string>(pairs: Pair[], seeds: Record<string, number> =
         for (const n of order) depth[n] = 0
         for (const n of order) for (const v of succ.get(n) || []) depth[v] = max(depth[v] || 0, (depth[n] || 0) + 1)
         for (const n of order) width[depth[n]] = (width[depth[n]] || 0) + 1
-        for (const n of order) n in seeds ? ((lo[n] = seeds[n]), (hi[n] = seeds[n])) : ((lo[n] = Number.NEGATIVE_INFINITY), (hi[n] = Number.POSITIVE_INFINITY))
+        for (const n of order) n in seeds ? ((lo[n] = seeds[n]), (hi[n] = seeds[n])) : ((lo[n] = -INF), (hi[n] = INF))
         for (const n of order) {
                 const base = n in seeds ? seeds[n] : lo[n]
-                if (base !== Number.NEGATIVE_INFINITY) for (const v of succ.get(n) || []) if (!(v in seeds)) lo[v] = max(lo[v], base + 1)
+                if (base !== -INF) for (const v of succ.get(n) || []) if (!(v in seeds)) lo[v] = max(lo[v], base + 1)
         }
         for (let i = order.length - 1; i >= 0; i -= 1) {
                 const n = order[i]
                 const base = n in seeds ? seeds[n] : hi[n]
-                if (base !== Number.POSITIVE_INFINITY) for (const p of preds.get(n) || []) if (!(p in seeds)) hi[p] = min(hi[p], base - 1)
+                if (base !== INF) for (const p of preds.get(n) || []) if (!(p in seeds)) hi[p] = min(hi[p], base - 1)
         }
         const warns: string[] = []
         const items = { ...seeds } as Record<K, number>
@@ -128,8 +129,8 @@ const assign = <K extends string>(pairs: Pair[], seeds: Record<string, number> =
                 if (n in seeds) continue
                 const l = lo[n]
                 const h = hi[n]
-                const hasL = l !== Number.NEGATIVE_INFINITY
-                const hasH = h !== Number.POSITIVE_INFINITY
+                const hasL = l !== -INF
+                const hasH = h !== INF
                 let v: number
                 if (!hasL && !hasH) {
                         const d = depth[n] || 0
