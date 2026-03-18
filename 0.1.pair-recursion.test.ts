@@ -114,7 +114,6 @@ describe('Edge recursion', () => {
                 it('branch=index(z=>[z("b","c")]); index(z=>[z("a",[branch])])', () => {
                         // Error: invalid node
                         const branch = index((z) => [z('b', 'c')])
-                        // @ts-ignore @TODO FIX: Type instantiation is excessively deep and possibly infinite.
                         const res = index((z) => [z('a', [branch])])
                         // @ts-ignore @TODO FIX: Property 'b' does not exist on type 'ZApi<"a">'.
                         expect(res.a).toBeLessThan(res.b)

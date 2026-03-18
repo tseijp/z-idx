@@ -5,42 +5,42 @@ describe('type inference and edge cases', () => {
         describe('expectTypeOf linear chain', () => {
                 it('linear chain has all keys as number', () => {
                         const res = index((z) => z('a', 'b', 'c'))
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
-                        // @ts-expect-error
-                        expectTypeOf(res._).toBeNumber()
                 })
 
                 it('single pair z("a","b") type has a:number, b:number', () => {
                         const res = index((z) => z('a', 'b'))
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.warns).toEqualTypeOf<string[]>()
-                        // @ts-expect-error
-                        expectTypeOf(res._).toBeNumber()
                 })
         })
 
         describe('expectTypeOf array children', () => {
                 it('array children has all keys as number', () => {
                         const res = index((z) => z('a', ['b', 'c', 'd']))
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
                         expectTypeOf(res.d).toBeNumber()
-                        // @ts-expect-error
-                        expectTypeOf(res._).toBeNumber()
                 })
 
                 it('reversed array children type inference', () => {
                         const res = index((z) => z('a', ['d', 'c', 'b']))
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
                         expectTypeOf(res.d).toBeNumber()
-                        // @ts-expect-error
-                        expectTypeOf(res._).toBeNumber()
                 })
         })
 
@@ -50,22 +50,22 @@ describe('type inference and edge cases', () => {
                                 const chain = z('b', 'c')
                                 return z('a', [chain])
                         })
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
-                        // @ts-expect-error
-                        expectTypeOf(res._).toBeNumber()
                 })
 
                 it('mixed inputs combines all keys', () => {
                         const res = index((z) => [z('a', 'b', 'c'), z('b', ['d', 'e'])])
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
                         expectTypeOf(res.d).toBeNumber()
                         expectTypeOf(res.e).toBeNumber()
-                        // @ts-expect-error
-                        expectTypeOf(res._).toBeNumber()
                 })
         })
 
@@ -73,31 +73,33 @@ describe('type inference and edge cases', () => {
                 it('extension preserves + adds keys', () => {
                         const base = index((z) => z('a', 'b'))
                         const ext = base((z) => z('b', 'c', 'd'))
+                        // @ts-expect-error
+                        expectTypeOf(ext._).toBeNumber()
                         expectTypeOf(ext.a).toBeNumber()
                         expectTypeOf(ext.b).toBeNumber()
                         expectTypeOf(ext.c).toBeNumber()
                         expectTypeOf(ext.d).toBeNumber()
-                        // @ts-expect-error
-                        expectTypeOf(ext._).toBeNumber()
                 })
 
                 it('extension type combines base + new keys', () => {
                         const base = index((z) => z('a', 'b', 'c'))
                         const next = base((z) => [z('c', 'd'), z('b', ['e', 'f'])])
+                        // @ts-expect-error
+                        expectTypeOf(next._).toBeNumber()
                         expectTypeOf(next.a).toBeNumber()
                         expectTypeOf(next.b).toBeNumber()
                         expectTypeOf(next.c).toBeNumber()
                         expectTypeOf(next.d).toBeNumber()
                         expectTypeOf(next.e).toBeNumber()
                         expectTypeOf(next.f).toBeNumber()
-                        // @ts-expect-error
-                        expectTypeOf(next._).toBeNumber()
                 })
         })
 
         describe('large key set', () => {
                 it('8+ keys all present in type', () => {
                         const res = index((z) => z('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'))
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
@@ -106,14 +108,14 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.f).toBeNumber()
                         expectTypeOf(res.g).toBeNumber()
                         expectTypeOf(res.h).toBeNumber()
-                        // @ts-expect-error
-                        expectTypeOf(res._).toBeNumber()
                 })
         })
 
         describe('deep nested tagged type inference', () => {
                 it('z("a",[z("b",[z("c","d"),"e"]),z("f",["g"])]) all keys typed', () => {
                         const res = index((z) => z('a', [z('b', [z('c', 'd'), 'e']), z('f', ['g'])]))
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
@@ -121,8 +123,6 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.e).toBeNumber()
                         expectTypeOf(res.f).toBeNumber()
                         expectTypeOf(res.g).toBeNumber()
-                        // @ts-expect-error
-                        expectTypeOf(res._).toBeNumber()
                         expect(res.a).toBeLessThan(res.b)
                         expect(res.a).toBeLessThan(res.f)
                         expect(res.b).toBeLessThan(res.c)
@@ -137,8 +137,8 @@ describe('type inference and edge cases', () => {
         })
 
         describe('flat + nested arrays', () => {
-                it('z("a",[[["b","c"]],["d","e"],"f"]) all above a', () => {
-                        const res = index((z) => z('a', [[['b', 'c']], ['d', 'e'], 'f']))
+                it('z("a",[["b","c"],["d","e"],"f"]) all above a', () => {
+                        const res = index((z) => z('a', [['b', 'c'], ['d', 'e'], 'f']))
                         expect(res.a).toBeLessThan(res.b)
                         expect(res.a).toBeLessThan(res.c)
                         expect(res.a).toBeLessThan(res.d)
@@ -147,7 +147,7 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('flat + nested arrays: c < d ordering', () => {
-                        const res = index((z) => z('a', [[['b', 'c']], ['d', 'e'], 'f']))
+                        const res = index((z) => z('a', [['b', 'c'], ['d', 'e'], 'f']))
                         expect(res.c).toBeLessThan(res.d)
                 })
         })
@@ -175,6 +175,8 @@ describe('type inference and edge cases', () => {
         describe('combined tagged + array + linear key inference', () => {
                 it('all keys present and basic ordering', () => {
                         const res = index((z) => [z('a', ['b', 'c']), z('b', [z('d', ['e', z('f', 'g')]), 'h'])])
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
@@ -183,8 +185,6 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.f).toBeNumber()
                         expectTypeOf(res.g).toBeNumber()
                         expectTypeOf(res.h).toBeNumber()
-                        // @ts-expect-error
-                        expectTypeOf(res._).toBeNumber()
                         expect(res.a).toBeLessThan(res.b)
                         expect(res.a).toBeLessThan(res.c)
                         expect(res.b).toBeLessThan(res.d)
@@ -220,6 +220,8 @@ describe('type inference and edge cases', () => {
 
                 it('complex nested: multiple layers all surface in type', () => {
                         const res = index((z) => z('root', [z('l1', [z('l2a', 'leaf1'), 'leaf2']), z('r1', ['leaf3', 'leaf4'])]))
+                        // @ts-expect-error
+                        expectTypeOf(res._).toBeNumber()
                         expectTypeOf(res.root).toBeNumber()
                         expectTypeOf(res.l1).toBeNumber()
                         expectTypeOf(res.l2a).toBeNumber()
@@ -228,8 +230,6 @@ describe('type inference and edge cases', () => {
                         expectTypeOf(res.r1).toBeNumber()
                         expectTypeOf(res.leaf3).toBeNumber()
                         expectTypeOf(res.leaf4).toBeNumber()
-                        // @ts-expect-error
-                        expectTypeOf(res._).toBeNumber()
                         expect(res.root).toBeLessThan(res.l1)
                         expect(res.root).toBeLessThan(res.r1)
                         expect(res.l1).toBeLessThan(res.l2a)

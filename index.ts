@@ -4,9 +4,9 @@ type Node = string | Edge<any> | readonly Node[] | ((...a: any[]) => any)
 type KeysOf<T> = T extends string ? T : T extends Edge<infer U> ? KeysOf<U> : T extends readonly (infer R)[] ? KeysOf<R> : never
 type Keys<P> = P extends Edge<infer U> ? KeysOf<U> : P extends readonly (infer R)[] ? Keys<R> : never
 export type ZRes<K extends string> = { items: Record<K, number>; warns: string[] }
-export type ZExt<K extends string> = <P extends readonly unknown[]>(build: (z: ZFun) => P) => ZApi<K | Keys<P>>
+export type ZExt<K extends string> = <const P extends readonly unknown[]>(build: (z: ZFun) => P) => ZApi<K | Keys<P>>
 export type ZApi<K extends string> = ZExt<K> & Record<K, number> & { warns: string[] }
-export type ZFun = { <C extends readonly [Node, ...Node[]], A extends string>(lower: A, children: readonly [...C]): Edge<[A, ...C]>; <T extends readonly [Node, Node, ...Node[]]>(...keys: T): Edge<T> }
+export type ZFun = { <const C extends readonly [Node, ...Node[]], A extends string>(lower: A, children: readonly [...C]): Edge<[A, ...C]>; <const T extends readonly [Node, Node, ...Node[]]>(...keys: T): Edge<T> }
 const SYM = Symbol('pack')
 const INF = 1 << 30
 const STEP = 1 << 10
@@ -168,7 +168,7 @@ const assign = <K extends string>(pairs: Pair[], seeds: Record<string, number> =
         return { items: items as Record<K, number>, warns }
 }
 const api = <K extends string>({ items, warns }: ZRes<K>): ZApi<K> => {
-        const ext = <P extends readonly unknown[]>(build: (z: ZFun) => P) => {
+        const ext = <const P extends readonly unknown[]>(build: (z: ZFun) => P) => {
                 const pairs: Pair[] = []
                 collect(build(z), pairs)
                 const next = assign<K | Keys<P>>(pairs, items as Record<K | Keys<P>, number>)
@@ -176,7 +176,7 @@ const api = <K extends string>({ items, warns }: ZRes<K>): ZApi<K> => {
         }
         return Object.assign(ext, { ...items, warns })
 }
-export function index<P extends readonly unknown[]>(build: (z: ZFun) => P): ZApi<Keys<P>> {
+export function index<const P extends readonly unknown[]>(build: (z: ZFun) => P): ZApi<Keys<P>> {
         const pairs: Pair[] = []
         collect(build(z), pairs)
         return api<Keys<P>>(assign<Keys<P>>(pairs))
