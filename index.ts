@@ -3,10 +3,10 @@ type Edge<T extends readonly [unknown, ...unknown[]] = readonly [unknown, ...unk
 type Node = string | Edge<any> | readonly Node[] | ((...a: any[]) => any)
 type KeysOf<T> = T extends string ? T : T extends Edge<infer U> ? KeysOf<U> : T extends readonly (infer R)[] ? KeysOf<R> : never
 type Keys<P> = P extends Edge<infer U> ? KeysOf<U> : P extends readonly (infer R)[] ? Keys<R> : never
-type ZRes<K extends string> = { items: Record<K, number>; warns: string[] }
-type ZExt<K extends string> = <P extends readonly unknown[]>(build: (z: ZFun) => P) => ZApi<K | Keys<P>>
-type ZApi<K extends string> = ZExt<K> & Record<K, number> & { warns: string[] }
-type ZFun = { <C extends readonly [Node, ...Node[]], A extends string>(lower: A, children: readonly [...C]): Edge<[A, ...C]>; <T extends readonly [Node, Node, ...Node[]]>(...keys: T): Edge<T> }
+export type ZRes<K extends string> = { items: Record<K, number>; warns: string[] }
+export type ZExt<K extends string> = <P extends readonly unknown[]>(build: (z: ZFun) => P) => ZApi<K | Keys<P>>
+export type ZApi<K extends string> = ZExt<K> & Record<K, number> & { warns: string[] }
+export type ZFun = { <C extends readonly [Node, ...Node[]], A extends string>(lower: A, children: readonly [...C]): Edge<[A, ...C]>; <T extends readonly [Node, Node, ...Node[]]>(...keys: T): Edge<T> }
 const SYM = Symbol('pack')
 const INF = 1 << 30
 const STEP = 1 << 10
@@ -94,8 +94,8 @@ const topo = (pairs: Pair[], extras: string[]) => {
         for (let i = 0; i < q.length; i += 1) {
                 const n = q[i]
                 order.push(n)
-                for (const v of succ.get(n) || []) {
-                        const d = (indeg.get(v) || 0) - 1
+                for (const v of succ.get(n)!) {
+                        const d = indeg.get(v)! - 1
                         indeg.set(v, d)
                         if (d === 0) q.push(v)
                 }
@@ -111,7 +111,7 @@ const assign = <K extends string>(pairs: Pair[], seeds: Record<string, number> =
         const width: Record<number, number> = {}
         const cursor: Record<number, number> = {}
         for (const n of order) depth[n] = 0
-        for (const n of order) for (const v of succ.get(n) || []) depth[v] = max(depth[v] || 0, (depth[n] || 0) + 1)
+        for (const n of order) for (const v of succ.get(n)!) depth[v] = max(depth[v] || 0, (depth[n] || 0) + 1)
         for (const n of order) width[depth[n]] = (width[depth[n]] || 0) + 1
         for (const n of order) {
                 if (n in seeds) {
@@ -125,13 +125,13 @@ const assign = <K extends string>(pairs: Pair[], seeds: Record<string, number> =
         for (const n of order) {
                 let base = lo[n]
                 if (n in seeds) base = seeds[n]
-                if (base !== -INF) for (const v of succ.get(n) || []) if (!(v in seeds)) lo[v] = max(lo[v], base + 1)
+                if (base !== -INF) for (const v of succ.get(n)!) if (!(v in seeds)) lo[v] = max(lo[v], base + 1)
         }
         for (let i = order.length - 1; i >= 0; i -= 1) {
                 const n = order[i]
                 let base = hi[n]
                 if (n in seeds) base = seeds[n]
-                if (base !== INF) for (const p of preds.get(n) || []) if (!(p in seeds)) hi[p] = min(hi[p], base - 1)
+                if (base !== INF) for (const p of preds.get(n)!) if (!(p in seeds)) hi[p] = min(hi[p], base - 1)
         }
         const warns: string[] = []
         const items = { ...seeds } as Record<K, number>
@@ -149,7 +149,7 @@ const assign = <K extends string>(pairs: Pair[], seeds: Record<string, number> =
                         const idx = (cursor[d] = (cursor[d] || 0) + 1)
                         v = START + d * STEP + spread * idx
                 } else if (!hasH) {
-                        const hasPred = (preds.get(n) || []).length > 0
+                        const hasPred = preds.get(n)!.length > 0
                         if (hasPred) v = l - 1 + STEP
                         else if (hasL) v = l
                         else v = START - STEP
@@ -170,7 +170,7 @@ const assign = <K extends string>(pairs: Pair[], seeds: Record<string, number> =
 const api = <K extends string>({ items, warns }: ZRes<K>): ZApi<K> => {
         const ext = <P extends readonly unknown[]>(build: (z: ZFun) => P) => {
                 const pairs: Pair[] = []
-                for (const v of build(z)) collect(v, pairs)
+                collect(build(z), pairs)
                 const next = assign<K | Keys<P>>(pairs, items as Record<K | Keys<P>, number>)
                 return api<K | Keys<P>>({ items: next.items, warns: [...warns, ...next.warns] })
         }
@@ -178,7 +178,7 @@ const api = <K extends string>({ items, warns }: ZRes<K>): ZApi<K> => {
 }
 export function index<P extends readonly unknown[]>(build: (z: ZFun) => P): ZApi<Keys<P>> {
         const pairs: Pair[] = []
-        for (const v of build(z)) collect(v, pairs)
+        collect(build(z), pairs)
         return api<Keys<P>>(assign<Keys<P>>(pairs))
 }
 export default index

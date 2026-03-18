@@ -4,14 +4,14 @@ import { index } from './utils'
 describe('type inference and edge cases', () => {
         describe('expectTypeOf linear chain', () => {
                 it('linear chain has all keys as number', () => {
-                        const res = index((z) => [z('a', 'b', 'c')])
+                        const res = index((z) => z('a', 'b', 'c'))
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
                 })
 
                 it('single pair z("a","b") type has a:number, b:number', () => {
-                        const res = index((z) => [z('a', 'b')])
+                        const res = index((z) => z('a', 'b'))
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.warns).toEqualTypeOf<string[]>()
@@ -20,7 +20,7 @@ describe('type inference and edge cases', () => {
 
         describe('expectTypeOf array children', () => {
                 it('array children has all keys as number', () => {
-                        const res = index((z) => [z('a', ['b', 'c', 'd'])])
+                        const res = index((z) => z('a', ['b', 'c', 'd']))
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
@@ -28,7 +28,7 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('reversed array children type inference', () => {
-                        const res = index((z) => [z('a', ['d', 'c', 'b'])])
+                        const res = index((z) => z('a', ['d', 'c', 'b']))
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
@@ -40,7 +40,7 @@ describe('type inference and edge cases', () => {
                 it('tagged pairs propagates all keys', () => {
                         const res = index((z) => {
                                 const chain = z('b', 'c')
-                                return [z('a', [chain])]
+                                return z('a', [chain])
                         })
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
@@ -59,8 +59,8 @@ describe('type inference and edge cases', () => {
 
         describe('expectTypeOf extension', () => {
                 it('extension preserves + adds keys', () => {
-                        const base = index((z) => [z('a', 'b')])
-                        const ext = base((z) => [z('b', 'c', 'd')])
+                        const base = index((z) => z('a', 'b'))
+                        const ext = base((z) => z('b', 'c', 'd'))
                         expectTypeOf(ext.a).toBeNumber()
                         expectTypeOf(ext.b).toBeNumber()
                         expectTypeOf(ext.c).toBeNumber()
@@ -68,7 +68,7 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('extension type combines base + new keys', () => {
-                        const base = index((z) => [z('a', 'b', 'c')])
+                        const base = index((z) => z('a', 'b', 'c'))
                         const next = base((z) => [z('c', 'd'), z('b', ['e', 'f'])])
                         expectTypeOf(next.a).toBeNumber()
                         expectTypeOf(next.b).toBeNumber()
@@ -81,7 +81,7 @@ describe('type inference and edge cases', () => {
 
         describe('large key set', () => {
                 it('8+ keys all present in type', () => {
-                        const res = index((z) => [z('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h')])
+                        const res = index((z) => z('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'))
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
@@ -95,7 +95,7 @@ describe('type inference and edge cases', () => {
 
         describe('deep nested tagged type inference', () => {
                 it('z("a",[z("b",[z("c","d"),"e"]),z("f",["g"])]) all keys typed', () => {
-                        const res = index((z) => [z('a', [z('b', [z('c', 'd'), 'e']), z('f', ['g'])])])
+                        const res = index((z) => z('a', [z('b', [z('c', 'd'), 'e']), z('f', ['g'])]))
                         expectTypeOf(res.a).toBeNumber()
                         expectTypeOf(res.b).toBeNumber()
                         expectTypeOf(res.c).toBeNumber()
@@ -111,14 +111,14 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('deep nested tagged: warns is empty (narrow gap f)', () => {
-                        const res = index((z) => [z('a', [z('b', [z('c', 'd'), 'e']), z('f', ['g'])])])
+                        const res = index((z) => z('a', [z('b', [z('c', 'd'), 'e']), z('f', ['g'])]))
                         expect(res.warns).toEqual([])
                 })
         })
 
         describe('flat + nested arrays', () => {
                 it('z("a",[[["b","c"]],["d","e"],"f"]) all above a', () => {
-                        const res = index((z) => [z('a', [[['b', 'c']], ['d', 'e'], 'f'])])
+                        const res = index((z) => z('a', [[['b', 'c']], ['d', 'e'], 'f']))
                         expect(res.a).toBeLessThan(res.b)
                         expect(res.a).toBeLessThan(res.c)
                         expect(res.a).toBeLessThan(res.d)
@@ -127,14 +127,14 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('flat + nested arrays: c < d ordering', () => {
-                        const res = index((z) => [z('a', [[['b', 'c']], ['d', 'e'], 'f'])])
+                        const res = index((z) => z('a', [[['b', 'c']], ['d', 'e'], 'f']))
                         expect(res.c).toBeLessThan(res.d)
                 })
         })
 
         describe('extension seeds preserved', () => {
                 it('base values survive extension', () => {
-                        const base = index((z) => [z('a', 'b', 'c')])
+                        const base = index((z) => z('a', 'b', 'c'))
                         const next = base((z) => [z('b', ['d', 'e']), z('c', 'f', 'g')])
                         expect(next.a).toBe(base.a)
                         expect(next.b).toBe(base.b)
@@ -146,7 +146,7 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('extension seeds preserved: warns is empty (narrow gap)', () => {
-                        const base = index((z) => [z('a', 'b', 'c')])
+                        const base = index((z) => z('a', 'b', 'c'))
                         const next = base((z) => [z('b', ['d', 'e']), z('c', 'f', 'g')])
                         expect(next.warns).toEqual([])
                 })
@@ -180,24 +180,24 @@ describe('type inference and edge cases', () => {
 
         describe('edge cases', () => {
                 it('duplicate declarations are idempotent', () => {
-                        const single = index((z) => [z('a', 'b')])
+                        const single = index((z) => z('a', 'b'))
                         const double = index((z) => [z('a', 'b'), z('a', 'b')])
                         expect(double.a).toBe(single.a)
                         expect(double.b).toBe(single.b)
                 })
 
                 it('warns array exists on result', () => {
-                        const res = index((z) => [z('a', 'b')])
+                        const res = index((z) => z('a', 'b'))
                         expect(Array.isArray(res.warns)).toBe(true)
                 })
 
                 it('empty warns for simple valid inputs', () => {
-                        const res = index((z) => [z('a', 'b', 'c')])
+                        const res = index((z) => z('a', 'b', 'c'))
                         expect(res.warns).toEqual([])
                 })
 
                 it('complex nested: multiple layers all surface in type', () => {
-                        const res = index((z) => [z('root', [z('l1', [z('l2a', 'leaf1'), 'leaf2']), z('r1', ['leaf3', 'leaf4'])])])
+                        const res = index((z) => z('root', [z('l1', [z('l2a', 'leaf1'), 'leaf2']), z('r1', ['leaf3', 'leaf4'])]))
                         expectTypeOf(res.root).toBeNumber()
                         expectTypeOf(res.l1).toBeNumber()
                         expectTypeOf(res.l2a).toBeNumber()
