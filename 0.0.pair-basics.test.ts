@@ -7,6 +7,8 @@ describe('z function basic API', () => {
                         const r = dag(index((z) => z('a', 'b')))
                                 .relative('a', 'b')
                                 .nowarn().raw
+                        // @ts-expect-error
+                        r._
                         expect(r.b - r.a).toBe(S)
                 })
 
@@ -14,6 +16,8 @@ describe('z function basic API', () => {
                         const r = dag(index((z) => z('a', 'b', 'c')))
                                 .relative('a', 'b', 'c')
                                 .nowarn().raw
+                        // @ts-expect-error
+                        r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.c - r.b).toBe(S)
                 })
@@ -22,6 +26,8 @@ describe('z function basic API', () => {
                         const r = dag(index((z) => z('a', 'b', 'c', 'd')))
                                 .relative('a', 'b', 'c', 'd')
                                 .nowarn().raw
+                        // @ts-expect-error
+                        r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.c - r.b).toBe(S)
                         expect(r.d - r.c).toBe(S)
@@ -31,6 +37,8 @@ describe('z function basic API', () => {
                         const r = dag(index((z) => z('a', 'b', 'c', 'd', 'e')))
                                 .relative('a', 'b', 'c', 'd', 'e')
                                 .nowarn().raw
+                        // @ts-expect-error
+                        r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.c - r.b).toBe(S)
                         expect(r.d - r.c).toBe(S)
@@ -39,13 +47,16 @@ describe('z function basic API', () => {
 
                 it('chain of length 2 stride equals S (1024)', () => {
                         const r = dag(index((z) => z('x', 'y'))).nowarn().raw
+                        // @ts-expect-error
+                        r._
                         expect(r.y - r.x).toBe(1024)
                 })
 
                 it('single z call with all keys ascending confirms no warns', () => {
                         dag(index((z) => z('a', 'b', 'c', 'd', 'e')))
                                 .relative('a', 'b', 'c', 'd', 'e')
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
         })
 
@@ -53,37 +64,43 @@ describe('z function basic API', () => {
                 it('parent + 2 array children: a < b, a < c', () => {
                         dag(index((z) => z('a', ['b', 'c'])))
                                 .absolute(['a', 'b'], ['a', 'c'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('parent + 3 array children: a < b, a < c, a < d', () => {
                         dag(index((z) => z('a', ['b', 'c', 'd'])))
                                 .absolute(['a', 'b'], ['a', 'c'], ['a', 'd'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('parent + 4 array children: a < all', () => {
                         dag(index((z) => z('a', ['b', 'c', 'd', 'e'])))
                                 .absolute(['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('reversed child order in array: a < c < b (declared order)', () => {
                         dag(index((z) => z('a', ['c', 'b'])))
                                 .absolute(['a', 'c'], ['a', 'b'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('nested arrays flattened: z("a",["b",["c","d"],"e"])', () => {
                         dag(index((z) => z('a', ['b', ['c', 'd'], 'e'])))
                                 .absolute(['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('deeply nested array: z("a",[["b","c"],["d","e"],"f"])', () => {
                         dag(index((z) => z('a', [['b', 'c'], ['d', 'e'], 'f'])))
                                 .absolute(['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'], ['a', 'f'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
         })
 
@@ -91,11 +108,13 @@ describe('z function basic API', () => {
                 it('mixed: chain + parent-array', () => {
                         dag(index((z) => [z('a', 'b', 'c'), z('b', ['d', 'e'])]))
                                 .absolute(['a', 'b'], ['b', 'c'], ['b', 'd'], ['b', 'e'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('two separate chains: z("a","b"), z("c","d")', () => {
-                        const r = dag(index((z) => [z('a', 'b'), z('c', 'd')])).nowarn().raw
+                        const r = dag(index((z) => [z('a', 'b'), z('c', 'd')])).nowarn().raw // @ts-expect-error
+                        r._
                         expect(r.a).toBeLessThan(r.b)
                         expect(r.c).toBeLessThan(r.d)
                 })
@@ -103,23 +122,27 @@ describe('z function basic API', () => {
                 it('overlapping chains: z("a","b"), z("b","c") same as z("a","b","c")', () => {
                         dag(index((z) => [z('a', 'b'), z('b', 'c')]))
                                 .relative('a', 'b', 'c')
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('reversed declaration order: z("b","c"), z("a","b") still a < b < c', () => {
                         dag(index((z) => [z('b', 'c'), z('a', 'b')]))
                                 .relative('a', 'b', 'c')
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('multiple overlapping: z("a","b"), z("b","c"), z("c","d")', () => {
                         dag(index((z) => [z('a', 'b'), z('b', 'c'), z('c', 'd')]))
                                 .relative('a', 'b', 'c', 'd')
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('separate chains have independent ordering', () => {
-                        const r = dag(index((z) => [z('a', 'b'), z('c', 'd')])).nowarn().raw
+                        const r = dag(index((z) => [z('a', 'b'), z('c', 'd')])).nowarn().raw // @ts-expect-error
+                        r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.d - r.c).toBe(S)
                 })
@@ -127,7 +150,8 @@ describe('z function basic API', () => {
                 it('three overlapping pairs form consistent chain', () => {
                         const r = dag(index((z) => [z('a', 'b'), z('b', 'c'), z('c', 'd')]))
                                 .relative('a', 'b', 'c', 'd')
-                                .nowarn().raw
+                                .nowarn().raw // @ts-expect-error
+                        r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.c - r.b).toBe(S)
                         expect(r.d - r.c).toBe(S)
@@ -136,7 +160,8 @@ describe('z function basic API', () => {
 
         describe('stride uniformity', () => {
                 it('linear chain stride is constant across all gaps', () => {
-                        const r = dag(index((z) => z('a', 'b', 'c', 'd', 'e'))).nowarn().raw
+                        const r = dag(index((z) => z('a', 'b', 'c', 'd', 'e'))).nowarn().raw // @ts-expect-error
+                        r._
                         const stride = r.b - r.a
                         expect(r.c - r.b).toBe(stride)
                         expect(r.d - r.c).toBe(stride)

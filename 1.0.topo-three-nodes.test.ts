@@ -4,60 +4,70 @@ import { dag, index, S } from './utils'
 describe('three nodes', () => {
         describe('6 non-isomorphic DAG shapes', () => {
                 it('pattern 1 - 0 edges: all same rank', () => {
-                        // @ts-ignore @TODO FIX: Type instantiation is excessively deep and possibly infinite.ts
-                        dag(index((z) => z(['a', 'b', 'c']))).relative(['a', 'b', 'c'])
+                        const r = dag(index((z) => z(['a', 'b', 'c'])))
+                                .relative(['a', 'b', 'c'])
+                                .absolute().raw // @ts-expect-error
+                        r._
                 })
 
                 it('pattern 2 - 1 edge: a < b', () => {
-                        dag(index((z) => z('a', 'b')))
+                        const r = dag(index((z) => z('a', 'b')))
                                 .relative('a', 'b')
-                                .absolute(['a', 'b'])
+                                .absolute(['a', 'b']).raw // @ts-expect-error
+                        r._
                 })
 
                 it('pattern 3 - 2 edges fan out: a < [b, c]', () => {
-                        dag(index((z) => z('a', ['b', 'c'])))
+                        const r = dag(index((z) => z('a', ['b', 'c'])))
                                 .relative('a', ['b', 'c'])
-                                .absolute(['a', 'b'], ['a', 'c'])
+                                .absolute(['a', 'b'], ['a', 'c']).raw // @ts-expect-error
+                        r._
                 })
 
                 it('pattern 4 - 2 edges fan in: [b, c] < a', () => {
-                        dag(index((z) => z(['b', 'c'], 'a')))
+                        const r = dag(index((z) => z(['b', 'c'], 'a')))
                                 .relative(['b', 'c'], 'a')
-                                .absolute(['b', 'a'], ['c', 'a'])
+                                .absolute(['b', 'a'], ['c', 'a']).raw // @ts-expect-error
+                        r._
                 })
 
                 it('pattern 5 - 2 edges chain: a < b < c', () => {
-                        dag(index((z) => z('a', 'b', 'c')))
+                        const r = dag(index((z) => z('a', 'b', 'c')))
                                 .relative('a', 'b', 'c')
-                                .absolute(['a', 'b'], ['b', 'c'])
+                                .absolute(['a', 'b'], ['b', 'c']).raw // @ts-expect-error
+                        r._
                 })
 
                 it('pattern 6 - 3 edges complete: a < b < c with a < c', () => {
-                        dag(index((z) => [z('a', 'b', 'c'), z('a', 'c')]))
+                        const r = dag(index((z) => [z('a', 'b', 'c'), z('a', 'c')]))
                                 .relative('a', 'b', 'c')
-                                .absolute(['a', 'b'], ['b', 'c'], ['a', 'c'])
+                                .absolute(['a', 'b'], ['b', 'c'], ['a', 'c']).raw // @ts-expect-error
+                        r._
                 })
         })
 
         describe('nested Edge', () => {
                 it('z("a", [z("b", "c")]) produces a < b < c', () => {
-                        dag(index((z) => z('a', [z('b', 'c')])))
+                        const r = dag(index((z) => z('a', [z('b', 'c')])))
                                 .relative('a', 'b', 'c')
-                                .absolute(['a', 'b'], ['b', 'c'])
+                                .absolute(['a', 'b'], ['b', 'c']).raw // @ts-expect-error
+                        r._
                 })
         })
 
         describe('separated pairs forming chain', () => {
                 it('z("a","b"), z("b","c") same as chain a < b < c', () => {
-                        dag(index((z) => [z('a', 'b'), z('b', 'c')]))
+                        const r = dag(index((z) => [z('a', 'b'), z('b', 'c')]))
                                 .relative('a', 'b', 'c')
-                                .absolute(['a', 'b'], ['b', 'c'])
+                                .absolute(['a', 'b'], ['b', 'c']).raw // @ts-expect-error
+                        r._
                 })
 
                 it('reversed declaration: z("b","c"), z("a","b") still a < b < c', () => {
-                        dag(index((z) => [z('b', 'c'), z('a', 'b')]))
+                        const r = dag(index((z) => [z('b', 'c'), z('a', 'b')]))
                                 .relative('a', 'b', 'c')
-                                .absolute(['a', 'b'], ['b', 'c'])
+                                .absolute(['a', 'b'], ['b', 'c']).raw // @ts-expect-error
+                        r._
                 })
         })
 
@@ -65,7 +75,8 @@ describe('three nodes', () => {
                 it('chain a < b < c has uniform stride', () => {
                         const r = dag(index((z) => z('a', 'b', 'c')))
                                 .relative('a', 'b', 'c')
-                                .nowarn().raw
+                                .nowarn().raw // @ts-expect-error
+                        r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.c - r.b).toBe(S)
                 })
@@ -73,19 +84,22 @@ describe('three nodes', () => {
                 it('fan out a < [b, c] has equal spacing from parent', () => {
                         const r = dag(index((z) => z('a', ['b', 'c'])))
                                 .relative('a', ['b', 'c'])
-                                .nowarn().raw
+                                .nowarn().raw // @ts-expect-error
+                        r._
                         expect(r.b - r.a).toBe(r.c - r.a)
                 })
 
                 it('single edge stride equals S', () => {
-                        const r = dag(index((z) => z('a', 'b'))).nowarn().raw
+                        const r = dag(index((z) => z('a', 'b'))).nowarn().raw // @ts-expect-error
+                        r._
                         expect(r.b - r.a).toBe(S)
                 })
         })
 
         describe('reversed child order in array', () => {
                 it('z("a", ["c", "b"]) preserves declared order', () => {
-                        dag(index((z) => z('a', ['c', 'b']))).absolute(['a', 'c'], ['a', 'b'])
+                        const r = dag(index((z) => z('a', ['c', 'b']))).absolute(['a', 'c'], ['a', 'b']).raw // @ts-expect-error
+                        r._
                 })
         })
 
@@ -119,12 +133,14 @@ describe('three nodes', () => {
 
         describe('fan out equal spacing', () => {
                 it('z("a", ["b", "c"]) children are equidistant from parent', () => {
-                        const r = dag(index((z) => z('a', ['b', 'c']))).nowarn().raw
+                        const r = dag(index((z) => z('a', ['b', 'c']))).nowarn().raw // @ts-expect-error
+                        r._
                         expect(r.b).toBe(r.c)
                 })
 
                 it('z("a", ["b", "c", "d"]) all children same rank', () => {
-                        const r = dag(index((z) => z('a', ['b', 'c', 'd']))).nowarn().raw
+                        const r = dag(index((z) => z('a', ['b', 'c', 'd']))).nowarn().raw // @ts-expect-error
+                        r._
                         expect(r.b).toBe(r.c)
                         expect(r.c).toBe(r.d)
                 })

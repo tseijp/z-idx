@@ -4,8 +4,7 @@ import { index } from './utils'
 describe('type inference and edge cases', () => {
         describe('expectTypeOf linear chain', () => {
                 it('linear chain has all keys as number', () => {
-                        const r = index((z) => z('a', 'b', 'c'))
-                        // @ts-expect-error
+                        const r = index((z) => z('a', 'b', 'c')) // @ts-expect-error
                         r._
                         expectTypeOf(r.a).toBeNumber()
                         expectTypeOf(r.b).toBeNumber()
@@ -13,8 +12,7 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('single pair z("a","b") type has a:number, b:number', () => {
-                        const r = index((z) => z('a', 'b'))
-                        // @ts-expect-error
+                        const r = index((z) => z('a', 'b')) // @ts-expect-error
                         r._
                         expectTypeOf(r.a).toBeNumber()
                         expectTypeOf(r.b).toBeNumber()
@@ -24,8 +22,7 @@ describe('type inference and edge cases', () => {
 
         describe('expectTypeOf array children', () => {
                 it('array children has all keys as number', () => {
-                        const r = index((z) => z('a', ['b', 'c', 'd']))
-                        // @ts-expect-error
+                        const r = index((z) => z('a', ['b', 'c', 'd'])) // @ts-expect-error
                         r._
                         expectTypeOf(r.a).toBeNumber()
                         expectTypeOf(r.b).toBeNumber()
@@ -46,8 +43,7 @@ describe('type inference and edge cases', () => {
 
         describe('expectTypeOf tagged pairs', () => {
                 it('tagged pairs propagates all keys', () => {
-                        const r = index((z) => z('a', [z('b', 'c')]))
-                        // @ts-expect-error
+                        const r = index((z) => z('a', [z('b', 'c')])) // @ts-expect-error
                         r._
                         expectTypeOf(r.a).toBeNumber()
                         expectTypeOf(r.b).toBeNumber()
@@ -55,8 +51,7 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('mixed inputs combines all keys', () => {
-                        const r = index((z) => [z('a', 'b', 'c'), z('b', ['d', 'e'])])
-                        // @ts-expect-error
+                        const r = index((z) => [z('a', 'b', 'c'), z('b', ['d', 'e'])]) // @ts-expect-error
                         r._
                         expectTypeOf(r.a).toBeNumber()
                         expectTypeOf(r.b).toBeNumber()
@@ -69,20 +64,17 @@ describe('type inference and edge cases', () => {
         describe('expectTypeOf extension', () => {
                 it('extension preserves + adds keys', () => {
                         const base = index((z) => z('a', 'b'))
-                        const ext = base((z) => z('b', 'c', 'd'))
-                        // @ts-expect-error
-                        expectTypeOf(ext._).toBeNumber()
-                        expectTypeOf(ext.a).toBeNumber()
-                        expectTypeOf(ext.b).toBeNumber()
-                        expectTypeOf(ext.c).toBeNumber()
-                        expectTypeOf(ext.d).toBeNumber()
+                        const r = base((z) => z('b', 'c', 'd')) // @ts-expect-error
+                        r._
+                        expectTypeOf(r.a).toBeNumber()
+                        expectTypeOf(r.b).toBeNumber()
+                        expectTypeOf(r.c).toBeNumber()
+                        expectTypeOf(r.d).toBeNumber()
                 })
 
                 it('extension type combines base + new keys', () => {
                         const base = index((z) => z('a', 'b', 'c'))
                         const next = base((z) => [z('c', 'd'), z('b', ['e', 'f'])])
-                        // @ts-expect-error
-                        expectTypeOf(next._).toBeNumber()
                         expectTypeOf(next.a).toBeNumber()
                         expectTypeOf(next.b).toBeNumber()
                         expectTypeOf(next.c).toBeNumber()
@@ -94,8 +86,7 @@ describe('type inference and edge cases', () => {
 
         describe('large key set', () => {
                 it('8+ keys all present in type', () => {
-                        const r = index((z) => z('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'))
-                        // @ts-expect-error
+                        const r = index((z) => z('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h')) // @ts-expect-error
                         r._
                         expectTypeOf(r.a).toBeNumber()
                         expectTypeOf(r.b).toBeNumber()
@@ -110,8 +101,7 @@ describe('type inference and edge cases', () => {
 
         describe('deep nested tagged type inference', () => {
                 it('z("a",[z("b",[z("c","d"),"e"]),z("f",["g"])]) all keys typed', () => {
-                        const r = index((z) => z('a', [z('b', [z('c', 'd'), 'e']), z('f', ['g'])]))
-                        // @ts-expect-error
+                        const r = index((z) => z('a', [z('b', [z('c', 'd'), 'e']), z('f', ['g'])])) // @ts-expect-error
                         r._
                         expectTypeOf(r.a).toBeNumber()
                         expectTypeOf(r.b).toBeNumber()
@@ -128,14 +118,16 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('deep nested tagged: warns is empty (narrow gap f)', () => {
-                        const r = index((z) => z('a', [z('b', [z('c', 'd'), 'e']), z('f', ['g'])]))
+                        const r = index((z) => z('a', [z('b', [z('c', 'd'), 'e']), z('f', ['g'])])) // @ts-expect-error
+                        r._
                         expect(r.warns).toEqual([])
                 })
         })
 
         describe('flat + nested arrays', () => {
                 it('z("a",[["b","c"],["d","e"],"f"]) all above a', () => {
-                        const r = index((z) => z('a', [['b', 'c'], ['d', 'e'], 'f']))
+                        const r = index((z) => z('a', [['b', 'c'], ['d', 'e'], 'f'])) // @ts-expect-error
+                        r._
                         expect(r.a).toBeLessThan(r.b)
                         expect(r.a).toBeLessThan(r.c)
                         expect(r.a).toBeLessThan(r.d)
@@ -144,7 +136,8 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('flat + nested arrays: c < d ordering', () => {
-                        const r = index((z) => z('a', [['b', 'c'], ['d', 'e'], 'f']))
+                        const r = index((z) => z('a', [['b', 'c'], ['d', 'e'], 'f'])) // @ts-expect-error
+                        r._
                         expect(r.c).toBeLessThan(r.d)
                 })
         })
@@ -171,8 +164,7 @@ describe('type inference and edge cases', () => {
 
         describe('combined tagged + array + linear key inference', () => {
                 it('all keys present and basic ordering', () => {
-                        const r = index((z) => [z('a', ['b', 'c']), z('b', [z('d', ['e', z('f', 'g')]), 'h'])])
-                        // @ts-expect-error
+                        const r = index((z) => [z('a', ['b', 'c']), z('b', [z('d', ['e', z('f', 'g')]), 'h'])]) // @ts-expect-error
                         r._
                         expectTypeOf(r.a).toBeNumber()
                         expectTypeOf(r.b).toBeNumber()
@@ -191,7 +183,8 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('combined tagged + array + linear: g < h and h < c', () => {
-                        const r = index((z) => [z('a', ['b', 'c']), z('b', [z('d', ['e', z('f', 'g')]), 'h'])])
+                        const r = index((z) => [z('a', ['b', 'c']), z('b', [z('d', ['e', z('f', 'g')]), 'h'])]) // @ts-expect-error
+                        r._
                         expect(r.h).toBeLessThan(r.g)
                         expect(r.c).toBeLessThan(r.h)
                 })
@@ -206,18 +199,19 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('warns array exists on result', () => {
-                        const r = index((z) => z('a', 'b'))
+                        const r = index((z) => z('a', 'b')) // @ts-expect-error
+                        r._
                         expect(Array.isArray(r.warns)).toBe(true)
                 })
 
                 it('empty warns for simple valid inputs', () => {
-                        const r = index((z) => z('a', 'b', 'c'))
+                        const r = index((z) => z('a', 'b', 'c')) // @ts-expect-error
+                        r._
                         expect(r.warns).toEqual([])
                 })
 
                 it('complex nested: multiple layers all surface in type', () => {
-                        const r = index((z) => z('root', [z('l1', [z('l2a', 'leaf1'), 'leaf2']), z('r1', ['leaf3', 'leaf4'])]))
-                        // @ts-expect-error
+                        const r = index((z) => z('root', [z('l1', [z('l2a', 'leaf1'), 'leaf2']), z('r1', ['leaf3', 'leaf4'])])) // @ts-expect-error
                         r._
                         expectTypeOf(r.root).toBeNumber()
                         expectTypeOf(r.l1).toBeNumber()

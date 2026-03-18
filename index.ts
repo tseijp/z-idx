@@ -1,6 +1,5 @@
 type Pair = readonly [string, string]
-const SYM = Symbol('z')
-type Edge<T extends readonly [unknown, ...unknown[]] = readonly [unknown, ...unknown[]]> = Pair[] & { [SYM]?: T }
+type Edge<T extends readonly unknown[] = readonly unknown[]> = Pair[] & { [SYM]?: T }
 type Node = string | Edge<any> | readonly Node[] | ((...a: any[]) => any)
 type Builtin = keyof (() => void) | 'warns'
 // prettier-ignore
@@ -16,9 +15,14 @@ type Keys<P> =
         P extends readonly (infer R)[] ? Keys<R> :
         never
 export type ZRes<K extends string> = { items: Record<K, number>; warns: string[] }
-export type ZExt<K extends string> = <const P extends readonly unknown[]>(build: (z: ZFun) => P) => ZApi<K | Keys<P>>
 export type ZApi<K extends string> = ZExt<K> & Record<K, number> & { warns: string[] }
-export type ZFun = { <const C extends readonly [Node, ...Node[]], A extends string>(lower: A, children: readonly [...C]): Edge<[A, ...C]>; <const T extends readonly [Node, Node, ...Node[]]>(...keys: T): Edge<T> }
+export type ZExt<K extends string> = <const P extends readonly unknown[]>(build: (z: ZFun) => P) => ZApi<K | Keys<P>>
+export type ZFun = {
+        <const T extends readonly string[]>(group: T): Edge<T>
+        // <const T extends readonly [Node, ...Node[]], U extends string>(lower: U, children: readonly [...T]): Edge<[U, ...T]>
+        <const T extends readonly [Node, Node, ...Node[]]>(...keys: T): Edge<T>
+}
+const SYM = Symbol('z')
 const INF = 1 << 30
 const STEP = 1 << 10
 const START = STEP

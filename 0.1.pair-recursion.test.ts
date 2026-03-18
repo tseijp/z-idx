@@ -4,70 +4,59 @@ import { dag, index, S } from './utils'
 describe('Edge recursion', () => {
         describe('simple tagged children', () => {
                 it('tagged child: chain=z("b","c"); z("a",[chain]) => a < b < c', () => {
-                        dag(
+                        const r = dag(
                                 index((z) => {
                                         const chain = z('b', 'c')
                                         return z('a', [chain])
                                 })
                         )
                                 .relative('a', 'b', 'c')
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('tagged chain reuse: chain=z("b","c","d"); z("a",[chain,"e"])', () => {
-                        dag(
-                                index((z) => {
-                                        const chain = z('b', 'c', 'd')
-                                        return z('a', [chain, 'e'])
-                                })
-                        )
+                        const r = dag(index((z) => z('a', [z('b', 'c', 'd'), 'e'])))
                                 .absolute(['a', 'b'], ['b', 'c'], ['c', 'd'], ['a', 'e'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('two tagged subtrees under one parent', () => {
-                        dag(
-                                index((z) => {
-                                        const left = z('b', 'c')
-                                        const right = z('d', 'e')
-                                        return z('a', [left, right])
-                                })
-                        )
+                        const r = dag(index((z) => z('a', [z('b', 'c'), z('d', 'e')])))
                                 .absolute(['a', 'b'], ['b', 'c'], ['a', 'd'], ['d', 'e'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('three tagged subtrees under one parent', () => {
-                        dag(
-                                index((z) => {
-                                        const t1 = z('b', 'c')
-                                        const t2 = z('d', 'e')
-                                        const t3 = z('f', 'g')
-                                        return z('a', [t1, t2, t3])
-                                })
-                        )
+                        const r = dag(index((z) => z('a', [z('b', 'c'), z('d', 'e'), z('f', 'g')])))
                                 .absolute(['a', 'b'], ['b', 'c'], ['a', 'd'], ['d', 'e'], ['a', 'f'], ['f', 'g'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('tagged + string siblings: z("a",[z("b","c"),"d","e"])', () => {
-                        dag(index((z) => z('a', [z('b', 'c'), 'd', 'e'])))
+                        const r = dag(index((z) => z('a', [z('b', 'c'), 'd', 'e'])))
                                 .absolute(['a', 'b'], ['b', 'c'], ['a', 'd'], ['a', 'e'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
         })
 
         describe('deep nesting', () => {
                 it('deep nesting 2 levels: z("a",[z("b",[z("c","d")])])', () => {
-                        dag(index((z) => z('a', [z('b', [z('c', 'd')])])))
+                        const r = dag(index((z) => z('a', [z('b', [z('c', 'd')])])))
                                 .relative('a', 'b', 'c', 'd')
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
 
                 it('deep nesting 3 levels: z("a",[z("b",[z("c",[z("d","e")])])])', () => {
-                        dag(index((z) => z('a', [z('b', [z('c', [z('d', 'e')])])])))
+                        const r = dag(index((z) => z('a', [z('b', [z('c', [z('d', 'e')])])])))
                                 .relative('a', 'b', 'c', 'd', 'e')
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
         })
 
@@ -75,7 +64,8 @@ describe('Edge recursion', () => {
                 it('chain + tagged branch ordering', () => {
                         const r = dag(index((z) => [z('a', 'b', 'c'), z('b', [z('d', ['e', 'f']), 'g'])]))
                                 .absolute(['a', 'b'], ['b', 'c'], ['b', 'd'], ['d', 'e'], ['d', 'f'], ['b', 'g'])
-                                .nowarn().raw
+                                .nowarn().raw // @ts-expect-error
+                        r._
                         expect(r.a).toBeLessThan(r.b)
                         expect(r.b).toBeLessThan(r.d)
                         expect(r.d).toBeLessThan(r.e)
@@ -83,7 +73,8 @@ describe('Edge recursion', () => {
                 })
 
                 it('chain + tagged branch: f < g and g < c', () => {
-                        const r = dag(index((z) => [z('a', 'b', 'c'), z('b', [z('d', ['e', 'f']), 'g'])])).raw
+                        const r = dag(index((z) => [z('a', 'b', 'c'), z('b', [z('d', ['e', 'f']), 'g'])])).raw // @ts-expect-error
+                        r._
                         expect(r.g).toBeLessThan(r.f)
                         expect(r.g).toBe(r.c)
                 })
@@ -91,41 +82,43 @@ describe('Edge recursion', () => {
 
         describe('multiple parents sharing tagged child', () => {
                 it('shared tagged child between two parents', () => {
-                        dag(
+                        const r = dag(
                                 index((z) => {
                                         const shared = z('c', 'd')
                                         return [z('a', [shared]), z('b', [shared])]
                                 })
                         )
                                 .absolute(['a', 'c'], ['b', 'c'], ['c', 'd'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
         })
 
         describe('tagged pairs with array children', () => {
                 it('z("a",[z("b",["c","d"])])', () => {
-                        dag(index((z) => z('a', [z('b', ['c', 'd'])])))
+                        const r = dag(index((z) => z('a', [z('b', ['c', 'd'])])))
                                 .absolute(['a', 'b'], ['b', 'c'], ['b', 'd'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
         })
 
         describe('reusing index result as tagged child', () => {
                 it('branch=index(z=>[z("b","c")]); index(z=>[z("a",[branch])])', () => {
                         const branch = index((z) => [z('b', 'c')])
-                        const res = index((z) => [z('a', [branch])])
-                        // @ts-expect-error
-                        res._
-                        expect(res.a).toBeLessThan(res.b)
-                        expect(res.b).toBeLessThan(res.c)
+                        const r = index((z) => [z('a', [branch])]) // @ts-expect-error
+                        r._
+                        expect(r.a).toBeLessThan(r.b)
+                        expect(r.b).toBeLessThan(r.c)
                 })
         })
 
         describe('mixed tagged and string children', () => {
                 it('z("a",["b","c"]), z("b",[z("d","e"),"f"])', () => {
-                        dag(index((z) => [z('a', ['b', 'c']), z('b', [z('d', 'e'), 'f'])]))
+                        const r = dag(index((z) => [z('a', ['b', 'c']), z('b', [z('d', 'e'), 'f'])]))
                                 .absolute(['a', 'b'], ['a', 'c'], ['b', 'd'], ['d', 'e'], ['b', 'f'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
         })
 
@@ -133,7 +126,8 @@ describe('Edge recursion', () => {
                 it('z("a",[z("b",["c","d"]),z("e",["f","g"])])', () => {
                         dag(index((z) => z('a', [z('b', ['c', 'd']), z('e', ['f', 'g'])])))
                                 .absolute(['a', 'b'], ['b', 'c'], ['b', 'd'], ['a', 'e'], ['e', 'f'], ['e', 'g'])
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
         })
 
@@ -141,7 +135,8 @@ describe('Edge recursion', () => {
                 it('a=z("a","b"), b=z("b","c") combined ordering', () => {
                         dag(index((z) => [z('a', 'b'), z('b', 'c')]))
                                 .relative('a', 'b', 'c')
-                                .nowarn()
+                                .nowarn().raw // @ts-expect-error
+                        r._
                 })
         })
 
@@ -149,7 +144,8 @@ describe('Edge recursion', () => {
                 it('tagged chain preserves uniform stride', () => {
                         const r = dag(index((z) => z('a', [z('b', [z('c', 'd')])])))
                                 .relative('a', 'b', 'c', 'd')
-                                .nowarn().raw
+                                .nowarn().raw // @ts-expect-error
+                        r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.c - r.b).toBe(S)
                         expect(r.d - r.c).toBe(S)
@@ -162,7 +158,8 @@ describe('Edge recursion', () => {
                                         const right = z('d', 'e')
                                         return z('a', [left, right])
                                 })
-                        ).nowarn().raw
+                        ).nowarn().raw // @ts-expect-error
+                        r._
                         expect(r.a).toBeLessThan(r.b)
                         expect(r.b).toBeLessThan(r.c)
                         expect(r.a).toBeLessThan(r.d)
