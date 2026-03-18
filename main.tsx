@@ -149,12 +149,13 @@ const MenuPlayground = ({ next }: { next: Record<string, number> }) => {
         const pickChildren = (nodes: NodeTree[], path: string[], depth: number) => resolveNode(nodes, path.slice(0, depth + 1))?.children || []
         const panelOne = path.length ? pickChildren(menuTree, path, 0) : []
         const panelTwo = path.length > 1 ? pickChildren(menuTree, path, 1) : []
+        const docsLabel = lang === 'ja' ? 'Ja' : 'En'
         return (
                 <div className="relative my-x p-x w-full h bg-grad rounded-3x shadow-lg text-ink overflow-hidden font-sf">
                         <div className="flex p-x gap-x items-center wrap bg-white rounded-2x shadow-md" style={{ zIndex: next['menu bar'] }}>
                                 {menuTree.map((item) => (
                                         <button key={item.id} className="p-yx bg-chip rounded-x shadow-inset text-ink font-bold cursor" onClick={() => openRoot(item.id)}>
-                                                {item.id === 'docs' ? (lang === 'ja' ? 'Ja' : 'En') : item.label}
+                                                {item.id === 'docs' ? docsLabel : item.label}
                                         </button>
                                 ))}
                                 <a href="https://github.com/tseijp/z-idx" className="ml-auto mr-x text-onyx font-bold tracking" style={{ zIndex: next['Github'] }} target="_blank" rel="noreferrer">
@@ -269,3 +270,7 @@ window.index = index
 const ng = index((z) => z('a', 'b', 'c'))
 
 const ok = index((z) => [z('a', 'b', 'c')])
+
+const ng2 = index((z) => z('a', 'b', 'c'))
+
+const ok2 = index((z) => [z('a', 'b', 'c')])

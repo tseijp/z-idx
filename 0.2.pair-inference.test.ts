@@ -127,17 +127,6 @@ describe('type inference and edge cases', () => {
                 })
 
                 it('flat + nested arrays: c < d ordering', () => {
-                        // AssertionError: expected 3072 to be less than 2048
-                        // ```mermaid
-                        // flowchart LR
-                        //     a --> b
-                        //     a --> f
-                        //     b --> d
-                        //     c --> d
-                        //     b --> e
-                        //     c --> e
-                        // ```
-                        // [a, c] < [b, f] < [d, e]
                         const res = index((z) => [z('a', [[['b', 'c']], ['d', 'e'], 'f'])])
                         expect(res.c).toBeLessThan(res.d)
                 })
