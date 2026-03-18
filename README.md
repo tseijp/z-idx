@@ -97,10 +97,10 @@ Edge preserve their embedded key set even when nested inside arrays, so deeply c
 ### API Surface
 
 ```ts
-(build: (z: ZPair) => P): ZApi<Keys<P>>
+(build: (z: ZFun) => P): ZApi<Keys<P>>
 ```
 
-`ZPair` supports two shapes. Linear form: `z(lower, mid, upper, ...)` creates consecutive relations.
+`ZFun` supports two shapes. Linear form: `z(lower, mid, upper, ...)` creates consecutive relations.
 Tree form: `z(parent, childrenArray)` where childrenArray may contain strings, nested arrays,
 or Edge; siblings share equal rank stride and retain declared order.
 Returned `ZApi` is callable for extension; it also exposes numeric ranks and a `warns` array.

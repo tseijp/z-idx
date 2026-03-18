@@ -97,10 +97,10 @@ Edge は配列内に入っても埋め込まれたキー集合を保持するた
 ### API Surface
 
 ```ts
-(build: (z: ZPair) => P): ZApi<Keys<P>>
+(build: (z: ZFun) => P): ZApi<Keys<P>>
 ```
 
-`ZPair` は二つの形を持つ。直列形: `z(lower, mid, upper, ...)` が連続関係を作る。
+`ZFun` は二つの形を持つ。直列形: `z(lower, mid, upper, ...)` が連続関係を作る。
 ツリー形: `z(parent, childrenArray)` で、childrenArray は文字列・入れ子配列・Edge を含められ、
 兄弟は同一ステップと宣言順を維持する。
 返る `ZApi` は拡張呼び出しができ、数値ランクと `warns` 配列も公開する。

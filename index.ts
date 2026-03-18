@@ -1,5 +1,5 @@
 type Pair = readonly [string, string]
-const SYM = Symbol('pack')
+const SYM = Symbol('z')
 type Edge<T extends readonly [unknown, ...unknown[]] = readonly [unknown, ...unknown[]]> = Pair[] & { [SYM]?: T }
 type Node = string | Edge<any> | readonly Node[] | ((...a: any[]) => any)
 type Builtin = keyof (() => void) | 'warns'
@@ -25,7 +25,10 @@ const START = STEP
 const GAP_WARN = STEP >> 4
 const { max, min, floor } = Math
 const clamp = (x: number, a: number, b: number) => min(max(x, a), b)
-const edge = (p: Pair[]) => (((p as any)[SYM] = true), p)
+const edge = (p: Pair[]) => {
+        ;(p as any)[SYM] = true
+        return p
+}
 const isEdge = (v: unknown): v is Edge => Array.isArray(v) && !!(v as any)[SYM]
 const sources = (ps: Pair[]) => {
         const d = new Map<string, number>()
