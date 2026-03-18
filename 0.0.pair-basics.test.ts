@@ -1,32 +1,30 @@
 import { describe, expect, it } from 'vitest'
-import { dag, index, S } from './utils'
+import { index } from './index'
+import { absolute, relative, nowarn, S } from './utils'
 
 describe('z function basic API', () => {
         describe('linear chains', () => {
                 it('two-key chain: a < b with stride S', () => {
-                        const r = dag(index((z) => z('a', 'b')))
-                                .relative('a', 'b')
-                                .nowarn().raw
-                        // @ts-expect-error
+                        const r = index((z) => z('a', 'b'))
+                        relative(r, 'a', 'b')
+                        nowarn(r) // @ts-expect-error
                         r._
                         expect(r.b - r.a).toBe(S)
                 })
 
                 it('three-key chain: a < b < c with uniform stride', () => {
-                        const r = dag(index((z) => z('a', 'b', 'c')))
-                                .relative('a', 'b', 'c')
-                                .nowarn().raw
-                        // @ts-expect-error
+                        const r = index((z) => z('a', 'b', 'c'))
+                        relative(r, 'a', 'b', 'c')
+                        nowarn(r) // @ts-expect-error
                         r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.c - r.b).toBe(S)
                 })
 
                 it('four-key chain: a < b < c < d with uniform stride', () => {
-                        const r = dag(index((z) => z('a', 'b', 'c', 'd')))
-                                .relative('a', 'b', 'c', 'd')
-                                .nowarn().raw
-                        // @ts-expect-error
+                        const r = index((z) => z('a', 'b', 'c', 'd'))
+                        relative(r, 'a', 'b', 'c', 'd')
+                        nowarn(r) // @ts-expect-error
                         r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.c - r.b).toBe(S)
@@ -34,10 +32,9 @@ describe('z function basic API', () => {
                 })
 
                 it('five-key chain: a < b < c < d < e with uniform stride', () => {
-                        const r = dag(index((z) => z('a', 'b', 'c', 'd', 'e')))
-                                .relative('a', 'b', 'c', 'd', 'e')
-                                .nowarn().raw
-                        // @ts-expect-error
+                        const r = index((z) => z('a', 'b', 'c', 'd', 'e'))
+                        relative(r, 'a', 'b', 'c', 'd', 'e')
+                        nowarn(r) // @ts-expect-error
                         r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.c - r.b).toBe(S)
@@ -46,111 +43,113 @@ describe('z function basic API', () => {
                 })
 
                 it('chain of length 2 stride equals S (1024)', () => {
-                        const r = dag(index((z) => z('x', 'y'))).nowarn().raw
-                        // @ts-expect-error
+                        const r = index((z) => z('x', 'y'))
+                        nowarn(r) // @ts-expect-error
                         r._
                         expect(r.y - r.x).toBe(1024)
                 })
 
                 it('single z call with all keys ascending confirms no warns', () => {
-                        dag(index((z) => z('a', 'b', 'c', 'd', 'e')))
-                                .relative('a', 'b', 'c', 'd', 'e')
-                                .nowarn().raw // @ts-expect-error
+                        const r = index((z) => z('a', 'b', 'c', 'd', 'e'))
+                        relative(r, 'a', 'b', 'c', 'd', 'e')
+                        nowarn(r) // @ts-expect-error
                         r._
                 })
         })
 
         describe('parent with array children', () => {
                 it('parent + 2 array children: a < b, a < c', () => {
-                        dag(index((z) => z('a', ['b', 'c'])))
-                                .absolute(['a', 'b'], ['a', 'c'])
-                                .nowarn().raw // @ts-expect-error
+                        const r = index((z) => z('a', ['b', 'c']))
+                        absolute(r, ['a', 'b'], ['a', 'c'])
+                        nowarn(r) // @ts-expect-error
                         r._
                 })
 
                 it('parent + 3 array children: a < b, a < c, a < d', () => {
-                        dag(index((z) => z('a', ['b', 'c', 'd'])))
-                                .absolute(['a', 'b'], ['a', 'c'], ['a', 'd'])
-                                .nowarn().raw // @ts-expect-error
+                        const r = index((z) => z('a', ['b', 'c', 'd']))
+                        absolute(r, ['a', 'b'], ['a', 'c'], ['a', 'd'])
+                        nowarn(r) // @ts-expect-error
                         r._
                 })
 
                 it('parent + 4 array children: a < all', () => {
-                        dag(index((z) => z('a', ['b', 'c', 'd', 'e'])))
-                                .absolute(['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'])
-                                .nowarn().raw // @ts-expect-error
+                        const r = index((z) => z('a', ['b', 'c', 'd', 'e']))
+                        absolute(r, ['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'])
+                        nowarn(r) // @ts-expect-error
                         r._
                 })
 
                 it('reversed child order in array: a < c < b (declared order)', () => {
-                        dag(index((z) => z('a', ['c', 'b'])))
-                                .absolute(['a', 'c'], ['a', 'b'])
-                                .nowarn().raw // @ts-expect-error
+                        const r = index((z) => z('a', ['c', 'b']))
+                        absolute(r, ['a', 'c'], ['a', 'b'])
+                        nowarn(r) // @ts-expect-error
                         r._
                 })
 
                 it('nested arrays flattened: z("a",["b",["c","d"],"e"])', () => {
-                        dag(index((z) => z('a', ['b', ['c', 'd'], 'e'])))
-                                .absolute(['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'])
-                                .nowarn().raw // @ts-expect-error
+                        const r = index((z) => z('a', ['b', ['c', 'd'], 'e']))
+                        absolute(r, ['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'])
+                        nowarn(r) // @ts-expect-error
                         r._
                 })
 
                 it('deeply nested array: z("a",[["b","c"],["d","e"],"f"])', () => {
-                        dag(index((z) => z('a', [['b', 'c'], ['d', 'e'], 'f'])))
-                                .absolute(['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'], ['a', 'f'])
-                                .nowarn().raw // @ts-expect-error
+                        const r = index((z) => z('a', [['b', 'c'], ['d', 'e'], 'f']))
+                        absolute(r, ['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'], ['a', 'f'])
+                        nowarn(r) // @ts-expect-error
                         r._
                 })
         })
 
         describe('multiple z calls', () => {
                 it('mixed: chain + parent-array', () => {
-                        dag(index((z) => [z('a', 'b', 'c'), z('b', ['d', 'e'])]))
-                                .absolute(['a', 'b'], ['b', 'c'], ['b', 'd'], ['b', 'e'])
-                                .nowarn().raw // @ts-expect-error
+                        const r = index((z) => [z('a', 'b', 'c'), z('b', ['d', 'e'])])
+                        absolute(r, ['a', 'b'], ['b', 'c'], ['b', 'd'], ['b', 'e'])
+                        nowarn(r) // @ts-expect-error
                         r._
                 })
 
                 it('two separate chains: z("a","b"), z("c","d")', () => {
-                        const r = dag(index((z) => [z('a', 'b'), z('c', 'd')])).nowarn().raw // @ts-expect-error
+                        const r = index((z) => [z('a', 'b'), z('c', 'd')])
+                        nowarn(r) // @ts-expect-error
                         r._
                         expect(r.a).toBeLessThan(r.b)
                         expect(r.c).toBeLessThan(r.d)
                 })
 
                 it('overlapping chains: z("a","b"), z("b","c") same as z("a","b","c")', () => {
-                        dag(index((z) => [z('a', 'b'), z('b', 'c')]))
-                                .relative('a', 'b', 'c')
-                                .nowarn().raw // @ts-expect-error
+                        const r = index((z) => [z('a', 'b'), z('b', 'c')])
+                        relative(r, 'a', 'b', 'c')
+                        nowarn(r) // @ts-expect-error
                         r._
                 })
 
                 it('reversed declaration order: z("b","c"), z("a","b") still a < b < c', () => {
-                        dag(index((z) => [z('b', 'c'), z('a', 'b')]))
-                                .relative('a', 'b', 'c')
-                                .nowarn().raw // @ts-expect-error
+                        const r = index((z) => [z('b', 'c'), z('a', 'b')])
+                        relative(r, 'a', 'b', 'c')
+                        nowarn(r) // @ts-expect-error
                         r._
                 })
 
                 it('multiple overlapping: z("a","b"), z("b","c"), z("c","d")', () => {
-                        dag(index((z) => [z('a', 'b'), z('b', 'c'), z('c', 'd')]))
-                                .relative('a', 'b', 'c', 'd')
-                                .nowarn().raw // @ts-expect-error
+                        const r = index((z) => [z('a', 'b'), z('b', 'c'), z('c', 'd')])
+                        relative(r, 'a', 'b', 'c', 'd')
+                        nowarn(r) // @ts-expect-error
                         r._
                 })
 
                 it('separate chains have independent ordering', () => {
-                        const r = dag(index((z) => [z('a', 'b'), z('c', 'd')])).nowarn().raw // @ts-expect-error
+                        const r = index((z) => [z('a', 'b'), z('c', 'd')])
+                        nowarn(r) // @ts-expect-error
                         r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.d - r.c).toBe(S)
                 })
 
                 it('three overlapping pairs form consistent chain', () => {
-                        const r = dag(index((z) => [z('a', 'b'), z('b', 'c'), z('c', 'd')]))
-                                .relative('a', 'b', 'c', 'd')
-                                .nowarn().raw // @ts-expect-error
+                        const r = index((z) => [z('a', 'b'), z('b', 'c'), z('c', 'd')])
+                        relative(r, 'a', 'b', 'c', 'd')
+                        nowarn(r) // @ts-expect-error
                         r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.c - r.b).toBe(S)
@@ -160,7 +159,8 @@ describe('z function basic API', () => {
 
         describe('stride uniformity', () => {
                 it('linear chain stride is constant across all gaps', () => {
-                        const r = dag(index((z) => z('a', 'b', 'c', 'd', 'e'))).nowarn().raw // @ts-expect-error
+                        const r = index((z) => z('a', 'b', 'c', 'd', 'e'))
+                        nowarn(r) // @ts-expect-error
                         r._
                         const stride = r.b - r.a
                         expect(r.c - r.b).toBe(stride)
@@ -169,8 +169,8 @@ describe('z function basic API', () => {
                 })
 
                 it('overlapping chains produce same stride as single chain', () => {
-                        const single = dag(index((z) => z('a', 'b', 'c'))).nowarn().raw
-                        const multi = dag(index((z) => [z('a', 'b'), z('b', 'c')])).nowarn().raw
+                        const single = index((z) => z('a', 'b', 'c'))
+                        const multi = index((z) => [z('a', 'b'), z('b', 'c')])
                         expect(multi.b - multi.a).toBe(single.b - single.a)
                         expect(multi.c - multi.b).toBe(single.c - single.b)
                 })

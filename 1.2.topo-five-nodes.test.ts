@@ -1,54 +1,63 @@
 import { describe, expect, it } from 'vitest'
-import { dag, index, S } from './utils'
+import { index } from './index'
+import { absolute, relative, nowarn, S } from './utils'
 
 describe('five nodes', () => {
         describe('basic patterns', () => {
                 it('chain: a < b < c < d < e', () => {
-                        dag(index((z) => z('a', 'b', 'c', 'd', 'e')))
-                                .relative('a', 'b', 'c', 'd', 'e')
-                                .absolute(['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e'])
+                        const r = index((z) => z('a', 'b', 'c', 'd', 'e'))
+                        relative(r, 'a', 'b', 'c', 'd', 'e')
+                        absolute(r, ['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e']) // @ts-expect-error
+                        r._
                 })
 
                 it('wide fan: a < [b,c,d,e]', () => {
-                        dag(index((z) => z('a', ['b', 'c', 'd', 'e'])))
-                                .relative('a', ['b', 'c', 'd', 'e'])
-                                .absolute(['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'])
+                        const r = index((z) => z('a', ['b', 'c', 'd', 'e']))
+                        relative(r, 'a', ['b', 'c', 'd', 'e'])
+                        absolute(r, ['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e']) // @ts-expect-error
+                        r._
                 })
 
                 it('funnel: [a,b,c,d] < e', () => {
-                        dag(index((z) => z(['a', 'b', 'c', 'd'], 'e')))
-                                .relative(['a', 'b', 'c', 'd'], 'e')
-                                .absolute(['a', 'e'], ['b', 'e'], ['c', 'e'], ['d', 'e'])
+                        const r = index((z) => z(['a', 'b', 'c', 'd'], 'e'))
+                        relative(r, ['a', 'b', 'c', 'd'], 'e')
+                        absolute(r, ['a', 'e'], ['b', 'e'], ['c', 'e'], ['d', 'e']) // @ts-expect-error
+                        r._
                 })
 
                 it('diamond tail: a < [b,c] then b,c < d then d < e', () => {
-                        dag(index((z) => [z('a', ['b', 'c']), z('b', 'd'), z('c', 'd'), z('d', 'e')]))
-                                .relative('a', ['b', 'c'], 'd', 'e')
-                                .absolute(['a', 'b'], ['a', 'c'], ['b', 'd'], ['c', 'd'], ['d', 'e'])
+                        const r = index((z) => [z('a', ['b', 'c']), z('b', 'd'), z('c', 'd'), z('d', 'e')])
+                        relative(r, 'a', ['b', 'c'], 'd', 'e')
+                        absolute(r, ['a', 'b'], ['a', 'c'], ['b', 'd'], ['c', 'd'], ['d', 'e']) // @ts-expect-error
+                        r._
                 })
 
                 it('interleaved ladders: z("a","b","e"), z("a","c","d","e")', () => {
-                        dag(index((z) => [z('a', 'b', 'e'), z('a', 'c', 'd', 'e')]))
-                                .relative('a', ['b', 'c'], 'd', 'e')
-                                .absolute(['a', 'b'], ['b', 'e'], ['a', 'c'], ['c', 'd'], ['d', 'e'])
+                        const r = index((z) => [z('a', 'b', 'e'), z('a', 'c', 'd', 'e')])
+                        relative(r, 'a', ['b', 'c'], 'd', 'e')
+                        absolute(r, ['a', 'b'], ['b', 'e'], ['a', 'c'], ['c', 'd'], ['d', 'e']) // @ts-expect-error
+                        r._
                 })
 
                 it('balanced two-level: z("a","b","d"), z("a","c","e")', () => {
-                        dag(index((z) => [z('a', 'b', 'd'), z('a', 'c', 'e')]))
-                                .relative('a', ['b', 'c'], ['d', 'e'])
-                                .absolute(['a', 'b'], ['a', 'c'], ['b', 'd'], ['c', 'e'])
+                        const r = index((z) => [z('a', 'b', 'd'), z('a', 'c', 'e')])
+                        relative(r, 'a', ['b', 'c'], ['d', 'e'])
+                        absolute(r, ['a', 'b'], ['a', 'c'], ['b', 'd'], ['c', 'e']) // @ts-expect-error
+                        r._
                 })
 
                 it('fan with deep child: z("a",["b","c","d"]), z("d","e")', () => {
-                        dag(index((z) => [z('a', ['b', 'c', 'd']), z('d', 'e')]))
-                                .relative('a', ['b', 'c', 'd'], 'e')
-                                .absolute(['a', 'b'], ['a', 'c'], ['a', 'd'], ['d', 'e'])
+                        const r = index((z) => [z('a', ['b', 'c', 'd']), z('d', 'e')])
+                        relative(r, 'a', ['b', 'c', 'd'], 'e')
+                        absolute(r, ['a', 'b'], ['a', 'c'], ['a', 'd'], ['d', 'e']) // @ts-expect-error
+                        r._
                 })
 
                 it('diamond head: z("a","b"), z("b",["c","d"]), z("c","e"), z("d","e")', () => {
-                        dag(index((z) => [z('a', 'b'), z('b', ['c', 'd']), z('c', 'e'), z('d', 'e')]))
-                                .relative('a', 'b', ['c', 'd'], 'e')
-                                .absolute(['a', 'b'], ['b', 'c'], ['b', 'd'], ['c', 'e'], ['d', 'e'])
+                        const r = index((z) => [z('a', 'b'), z('b', ['c', 'd']), z('c', 'e'), z('d', 'e')])
+                        relative(r, 'a', 'b', ['c', 'd'], 'e')
+                        absolute(r, ['a', 'b'], ['b', 'c'], ['b', 'd'], ['c', 'e'], ['d', 'e']) // @ts-expect-error
+                        r._
                 })
         })
 
@@ -64,7 +73,9 @@ describe('five nodes', () => {
 
         describe('stride uniformity', () => {
                 it('chain stride is constant across all gaps', () => {
-                        const r = dag(index((z) => z('a', 'b', 'c', 'd', 'e'))).nowarn().raw
+                        const r = index((z) => z('a', 'b', 'c', 'd', 'e'))
+                        nowarn(r) // @ts-expect-error
+                        r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.c - r.b).toBe(S)
                         expect(r.d - r.c).toBe(S)
@@ -72,7 +83,9 @@ describe('five nodes', () => {
                 })
 
                 it('wide fan children are all same rank', () => {
-                        const r = dag(index((z) => z('a', ['b', 'c', 'd', 'e']))).nowarn().raw
+                        const r = index((z) => z('a', ['b', 'c', 'd', 'e']))
+                        nowarn(r) // @ts-expect-error // @ts-expect-error
+                        r._
                         expect(r.b).toBe(r.c)
                         expect(r.c).toBe(r.d)
                         expect(r.d).toBe(r.e)
@@ -81,9 +94,10 @@ describe('five nodes', () => {
 
         describe('two disconnected components', () => {
                 it('z("a","b"), z("c","d","e") are independent', () => {
-                        const r = dag(index((z) => [z('a', 'b'), z('c', 'd', 'e')]))
-                                .absolute(['a', 'b'], ['c', 'd'], ['d', 'e'])
-                                .nowarn().raw
+                        const r = index((z) => [z('a', 'b'), z('c', 'd', 'e')])
+                        absolute(r, ['a', 'b'], ['c', 'd'], ['d', 'e'])
+                        nowarn(r) // @ts-expect-error
+                        r._
                         expect(r.b - r.a).toBe(S)
                         expect(r.d - r.c).toBe(S)
                         expect(r.e - r.d).toBe(S)
@@ -92,41 +106,45 @@ describe('five nodes', () => {
 
         describe('diamond plus extra', () => {
                 it('z("a","b"), z("a","c"), z("b","d"), z("c","d"), z("d","e")', () => {
-                        dag(index((z) => [z('a', 'b'), z('a', 'c'), z('b', 'd'), z('c', 'd'), z('d', 'e')]))
-                                .relative('a', ['b', 'c'], 'd', 'e')
-                                .absolute(['a', 'b'], ['a', 'c'], ['b', 'd'], ['c', 'd'], ['d', 'e'])
+                        const r = index((z) => [z('a', 'b'), z('a', 'c'), z('b', 'd'), z('c', 'd'), z('d', 'e')])
+                        relative(r, 'a', ['b', 'c'], 'd', 'e')
+                        absolute(r, ['a', 'b'], ['a', 'c'], ['b', 'd'], ['c', 'd'], ['d', 'e'])
                 })
         })
 
         describe('W-shape', () => {
                 it('z("a","c"), z("b","c"), z("c","d"), z("c","e")', () => {
-                        dag(index((z) => [z('a', 'c'), z('b', 'c'), z('c', 'd'), z('c', 'e')]))
-                                .relative(['a', 'b'], 'c', ['d', 'e'])
-                                .absolute(['a', 'c'], ['b', 'c'], ['c', 'd'], ['c', 'e'])
+                        const r = index((z) => [z('a', 'c'), z('b', 'c'), z('c', 'd'), z('c', 'e')])
+                        relative(r, ['a', 'b'], 'c', ['d', 'e'])
+                        absolute(r, ['a', 'c'], ['b', 'c'], ['c', 'd'], ['c', 'e']) // @ts-expect-error
+                        r._
                 })
         })
 
         describe('cross pattern', () => {
                 it('z("a","d"), z("a","e"), z("b","d"), z("b","e"), z("c","d")', () => {
-                        dag(index((z) => [z('a', 'd'), z('a', 'e'), z('b', 'd'), z('b', 'e'), z('c', 'd')]))
-                                .relative(['a', 'b', 'c'], ['d', 'e'])
-                                .absolute(['a', 'd'], ['a', 'e'], ['b', 'd'], ['b', 'e'], ['c', 'd'])
+                        const r = index((z) => [z('a', 'd'), z('a', 'e'), z('b', 'd'), z('b', 'e'), z('c', 'd')])
+                        relative(r, ['a', 'b', 'c'], ['d', 'e'])
+                        absolute(r, ['a', 'd'], ['a', 'e'], ['b', 'd'], ['b', 'e'], ['c', 'd']) // @ts-expect-error
+                        r._
                 })
         })
 
         describe('long chain with branch', () => {
                 it('z("a","b","c","d"), z("b","e")', () => {
-                        dag(index((z) => [z('a', 'b', 'c', 'd'), z('b', 'e')]))
-                                .relative('a', 'b', ['c', 'e'], 'd')
-                                .absolute(['a', 'b'], ['b', 'c'], ['c', 'd'], ['b', 'e'])
+                        const r = index((z) => [z('a', 'b', 'c', 'd'), z('b', 'e')])
+                        relative(r, 'a', 'b', ['c', 'e'], 'd')
+                        absolute(r, ['a', 'b'], ['b', 'c'], ['c', 'd'], ['b', 'e']) // @ts-expect-error
+                        r._
                 })
         })
 
         describe('two chains merging', () => {
                 it('z("a","b","d"), z("a","c","d"), z("d","e")', () => {
-                        dag(index((z) => [z('a', 'b', 'd'), z('a', 'c', 'd'), z('d', 'e')]))
-                                .relative('a', ['b', 'c'], 'd', 'e')
-                                .absolute(['a', 'b'], ['b', 'd'], ['a', 'c'], ['c', 'd'], ['d', 'e'])
+                        const r = index((z) => [z('a', 'b', 'd'), z('a', 'c', 'd'), z('d', 'e')])
+                        relative(r, 'a', ['b', 'c'], 'd', 'e')
+                        absolute(r, ['a', 'b'], ['b', 'd'], ['a', 'c'], ['c', 'd'], ['d', 'e']) // @ts-expect-error
+                        r._
                 })
         })
 })

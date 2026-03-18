@@ -19,8 +19,7 @@ export type ZApi<K extends string> = ZExt<K> & Record<K, number> & { warns: stri
 export type ZExt<K extends string> = <const P extends readonly unknown[]>(build: (z: ZFun) => P) => ZApi<K | Keys<P>>
 export type ZFun = {
         <const T extends readonly string[]>(group: T): Edge<T>
-        // <const T extends readonly [Node, ...Node[]], U extends string>(lower: U, children: readonly [...T]): Edge<[U, ...T]>
-        <const T extends readonly [Node, Node, ...Node[]]>(...keys: T): Edge<T>
+        <const T extends readonly Node[]>(...keys: T): Edge<T>
 }
 const SYM = Symbol('z')
 const INF = 1 << 30
