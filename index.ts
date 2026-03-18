@@ -1,39 +1,35 @@
 type Pair = readonly [string, string]
-type Edge<T extends readonly unknown[] = readonly unknown[]> = Pair[] & { [SYM]?: T }
-type Node = string | Edge<any> | readonly Node[] | ((...a: any[]) => any)
-type Builtin = keyof (() => void) | 'warns'
+type Edge<T extends readonly unknown[] = readonly unknown[]> = readonly Pair[] & { [SYM]?: T }
+type Node = string | Function | Edge | readonly Node[]
 // prettier-ignore
-type KeysOf<T> =
-        T extends string ? T :
+type KeysOf<T> = T extends string ? T :
         T extends Edge<infer U> ? KeysOf<U> :
         T extends readonly (infer R)[] ? KeysOf<R> :
-        T extends (...a: any[]) => any ? Exclude<keyof T, Builtin> :
+        T extends Function ? Exclude<keyof T, keyof Function> :
         never
 // prettier-ignore
 type Keys<P> =
         P extends Edge<infer U> ? KeysOf<U> :
         P extends readonly (infer R)[] ? Keys<R> :
         never
-export type ZRes<K extends string> = { items: Record<K, number>; warns: string[] }
-export type ZApi<K extends string> = ZExt<K> & Record<K, number> & { warns: string[] }
-export type ZExt<K extends string> = <const P extends readonly unknown[]>(build: (z: ZFun) => P) => ZApi<K | Keys<P>>
-export type ZFun = {
-        <const T extends readonly string[]>(group: T): Edge<T>
-        <const T extends readonly Node[]>(...keys: T): Edge<T>
-}
+export type ZRes<K extends string = string> = Record<K, number>
+export type ZApi<K extends string = string> = ZExt<K> & ZRes<K>
+export type ZExt<K extends string = string> = <const P extends readonly unknown[]>(build: (z: ZFun) => P) => ZApi<K | Keys<P>>
+export type ZFun = <const T extends readonly Node[]>(...keys: T) => Edge<T>
 const SYM = Symbol('z')
 const INF = 1 << 30
 const STEP = 1 << 10
 const START = STEP
-const GAP_WARN = STEP >> 4
 const { max, min, floor } = Math
 const clamp = (x: number, a: number, b: number) => min(max(x, a), b)
 const edge = (p: Pair[]) => {
-        ;(p as any)[SYM] = true
+        // @ts-ignore
+        p[SYM] = true
         return p
 }
-const isEdge = (v: unknown): v is Edge => Array.isArray(v) && !!(v as any)[SYM]
-const sources = (ps: Pair[]) => {
+// @ts-ignore
+const isEdge = (v: unknown): v is Edge => Array.isArray(v) && !!v[SYM]
+const sources = (ps: readonly Pair[]): string[] => {
         const d = new Map<string, number>()
         for (const [a, b] of ps) {
                 if (!d.has(a)) d.set(a, 0)
@@ -43,19 +39,18 @@ const sources = (ps: Pair[]) => {
         for (const [k, v] of d) if (v === 0) r.push(k)
         return r
 }
-const gather = (n: Node): { entries: string[]; pairs: Pair[] } => {
+const gather = (n: Node): { entries: string[]; pairs: readonly Pair[] } => {
         if (typeof n === 'string') return { entries: [n], pairs: [] }
         if (typeof n === 'function') {
-                const ks = Object.keys(n as any)
-                        .filter((k) => k !== 'warns')
-                        .sort((a, b) => ((n as any)[a] as number) - ((n as any)[b] as number))
+                // @ts-ignore
+                const ks = Object.keys(n).sort((a, b) => n[a] - n[b])
                 const p: Pair[] = []
                 for (let i = 0; i < ks.length - 1; i += 1) p.push([ks[i], ks[i + 1]])
                 return { entries: ks, pairs: p }
         }
-        if (isEdge(n)) return { entries: sources(n as Pair[]), pairs: n as Pair[] }
+        if (isEdge(n)) return { entries: sources(n), pairs: n }
         if (Array.isArray(n)) {
-                const parts = (n as readonly Node[]).map((v) => {
+                const parts = n.map((v) => {
                         const g = gather(v)
                         return { e: g.entries, p: g.pairs, n: typeof v !== 'string' }
                 })
@@ -70,7 +65,7 @@ const gather = (n: Node): { entries: string[]; pairs: Pair[] } => {
         }
         throw new Error('invalid node')
 }
-const z = (...args: readonly Node[]): Edge => {
+const z = (...args: Node[]): Edge => {
         const g = args.map(gather)
         const r: Pair[] = []
         for (const x of g) r.push(...x.pairs)
@@ -79,7 +74,7 @@ const z = (...args: readonly Node[]): Edge => {
 }
 const collect = (v: unknown, out: Pair[]): void => {
         if (isEdge(v)) {
-                out.push(...(v as Pair[]))
+                out.push(...v)
                 return
         }
         if (Array.isArray(v)) {
@@ -120,7 +115,7 @@ const topo = (pairs: Pair[], extras: string[]) => {
         if (order.length !== indeg.size) throw new Error('cycle')
         return { order, preds, succ }
 }
-const assign = <K extends string>(pairs: Pair[], seeds: Record<string, number> = {}): ZRes<K> => {
+const assign = (pairs: Pair[], seeds: ZRes = {}): ZRes => {
         const { order, preds, succ } = topo(pairs, Object.keys(seeds))
         const lo: Record<string, number> = {}
         const hi: Record<string, number> = {}
@@ -150,8 +145,7 @@ const assign = <K extends string>(pairs: Pair[], seeds: Record<string, number> =
                 if (n in seeds) base = seeds[n]
                 if (base !== INF) for (const p of preds.get(n)!) if (!(p in seeds)) hi[p] = min(hi[p], base - 1)
         }
-        const warns: string[] = []
-        const items = { ...seeds } as Record<K, number>
+        const items: ZRes = { ...seeds }
         for (const n of order) {
                 if (n in seeds) continue
                 const l = lo[n]
@@ -173,29 +167,29 @@ const assign = <K extends string>(pairs: Pair[], seeds: Record<string, number> =
                 } else if (!hasL) v = max(1, (h + 1) >> 1)
                 else {
                         const gap = h - l
-                        if (gap <= GAP_WARN) warns.push(`narrow gap ${n}`)
+                        // if (gap <= 1) throw `narrow gap ${n}` // @TODO FIX narrow gap
                         v = l + max(1, gap >> 1)
                 }
                 let low = -INF
                 if (hasL) low = l + 1
                 let high = INF
                 if (hasH) high = h - 1
-                items[n as K] = clamp(v, low, high)
+                items[n] = clamp(v, low, high)
         }
-        return { items: items as Record<K, number>, warns }
+        return items
 }
-const api = <K extends string>({ items, warns }: ZRes<K>): ZApi<K> => {
-        const ext = <const P extends readonly unknown[]>(build: (z: ZFun) => P) => {
+const api = (items: ZRes): ZApi => {
+        const ext: ZExt = (build) => {
                 const pairs: Pair[] = []
                 collect(build(z as ZFun), pairs)
-                const next = assign<K | Keys<P>>(pairs, items as Record<K | Keys<P>, number>)
-                return api<K | Keys<P>>({ items: next.items, warns: [...warns, ...next.warns] })
+                const next = assign(pairs, items)
+                return api(next)
         }
-        return Object.assign(ext, { ...items, warns })
+        return Object.assign(ext, items)
 }
 export function index<const P extends readonly unknown[]>(build: (z: ZFun) => P): ZApi<Keys<P>> {
         const pairs: Pair[] = []
         collect(build(z as ZFun), pairs)
-        return api<Keys<P>>(assign<Keys<P>>(pairs))
+        return api(assign(pairs))
 }
 export default index
