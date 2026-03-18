@@ -8,11 +8,12 @@ type ZRes<K extends string> = { items: Record<K, number>; warns: string[] }
 type ZExt<K extends string> = <P extends readonly unknown[]>(build: (z: ZPair) => P) => ZApi<K | Keys<P>>
 type ZApi<K extends string> = ZExt<K> & Record<K, number> & { warns: string[] }
 type ZPair = { <C extends readonly [Node, ...Node[]], A extends string>(lower: A, children: readonly [...C]): TaggedPairs<[A, ...C]>; <T extends readonly [Node, Node, ...Node[]]>(...keys: T): TaggedPairs<T> }
-const INF = 1 << 30
 const STEP = 1 << 10
 const START = STEP
+const INF = 1 << 30
 const GAP_WARN = STEP >> 4
 const { max, min, floor } = Math
+const clamp = (x: number, a: number, b: number) => min(max(x, a), b)
 type EP = { entries: string[]; pairs: Pair[] }
 const mark = <T extends readonly [unknown, ...unknown[]]>(p: Pair[]) => (((p as any)[ZTag] = true), p as TaggedPairs<T>)
 const isTagged = (v: unknown): v is TaggedPairs => Array.isArray(v) && !!(v as any)[ZTag]
@@ -29,7 +30,7 @@ const sources = (ps: Pair[]) => {
 const gather = (n: Node): EP => {
         if (typeof n === 'string') return { entries: [n], pairs: [] }
         if (typeof n === 'function') {
-                const ks = Object.keys(n)
+                const ks = Object.keys(n as any)
                         .filter((k) => k !== 'warns')
                         .sort((a, b) => ((n as any)[a] as number) - ((n as any)[b] as number))
                 const p: Pair[] = []
@@ -159,9 +160,9 @@ const assign = <K extends string>(pairs: Pair[], seeds: Record<string, number> =
                         if (gap <= GAP_WARN) warns.push(`narrow gap ${n}`)
                         v = l + max(1, gap >> 1)
                 }
-                if (hasH && v >= h) v = h - 1
-                if (hasL && v <= l) v = l + 1
-                items[n as K] = v
+                const low = hasL ? l + 1 : -INF
+                const high = hasH ? h - 1 : INF
+                items[n as K] = clamp(v, low, high)
         }
         return { items: items as Record<K, number>, warns }
 }
