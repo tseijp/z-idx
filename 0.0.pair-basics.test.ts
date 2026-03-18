@@ -1,87 +1,153 @@
-import { describe, expect, expectTypeOf, it } from 'vitest'
-import index from './index'
+import { describe, expect, it } from 'vitest'
+import { dag, index, S } from './utils'
 
-describe('z index pair basics 0.0', () => {
-        it('orders linear string chains with constant stride', () => {
-                const res = index((z) => [z('a', 'b', 'c', 'd')])
-                const stride = res.b - res.a
+describe('z function basic API', () => {
+        describe('linear chains', () => {
+                it('two-key chain: a < b with stride S', () => {
+                        const r = dag((z) => [z('a', 'b')])
+                                .relative('a', 'b')
+                                .nowarn().raw
+                        expect(r.b - r.a).toBe(S)
+                })
 
-                expect(res.warns).toEqual([])
-                expect(res.a).toBeLessThan(res.b)
-                expect(res.b).toBeLessThan(res.c)
-                expect(res.c).toBeLessThan(res.d)
-                expect(res.c - res.b).toBe(stride)
-                expect(res.d - res.c).toBe(stride)
+                it('three-key chain: a < b < c with uniform stride', () => {
+                        const r = dag((z) => [z('a', 'b', 'c')])
+                                .relative('a', 'b', 'c')
+                                .nowarn().raw
+                        expect(r.b - r.a).toBe(S)
+                        expect(r.c - r.b).toBe(S)
+                })
+
+                it('four-key chain: a < b < c < d with uniform stride', () => {
+                        const r = dag((z) => [z('a', 'b', 'c', 'd')])
+                                .relative('a', 'b', 'c', 'd')
+                                .nowarn().raw
+                        expect(r.b - r.a).toBe(S)
+                        expect(r.c - r.b).toBe(S)
+                        expect(r.d - r.c).toBe(S)
+                })
+
+                it('five-key chain: a < b < c < d < e with uniform stride', () => {
+                        const r = dag((z) => [z('a', 'b', 'c', 'd', 'e')])
+                                .relative('a', 'b', 'c', 'd', 'e')
+                                .nowarn().raw
+                        expect(r.b - r.a).toBe(S)
+                        expect(r.c - r.b).toBe(S)
+                        expect(r.d - r.c).toBe(S)
+                        expect(r.e - r.d).toBe(S)
+                })
+
+                it('chain of length 2 stride equals S (1024)', () => {
+                        const r = dag((z) => [z('x', 'y')]).nowarn().raw
+                        expect(r.y - r.x).toBe(1024)
+                })
+
+                it('single z call with all keys ascending confirms no warns', () => {
+                        dag((z) => [z('a', 'b', 'c', 'd', 'e')])
+                                .relative('a', 'b', 'c', 'd', 'e')
+                                .nowarn()
+                })
         })
 
-        it('connects a parent to array children and keeps sibling spacing uniform', () => {
-                const res = index((z) => [z('a', ['b', 'c', 'd'])])
-                const stride = res.b - res.a
+        describe('parent with array children', () => {
+                it('parent + 2 array children: a < b, a < c', () => {
+                        dag((z) => [z('a', ['b', 'c'])])
+                                .edges(['a', 'b'], ['a', 'c'])
+                                .nowarn()
+                })
 
-                expect(res.warns).toEqual([])
-                expect(res.b).toBeGreaterThan(res.a)
-                expect(res.c).toBeGreaterThan(res.a)
-                expect(res.d).toBeGreaterThan(res.a)
-                expect(res.b - res.a).toBe(stride)
-                expect(res.c - res.b).toBe(stride)
-                expect(res.d - res.c).toBe(stride)
+                it('parent + 3 array children: a < b, a < c, a < d', () => {
+                        dag((z) => [z('a', ['b', 'c', 'd'])])
+                                .edges(['a', 'b'], ['a', 'c'], ['a', 'd'])
+                                .nowarn()
+                })
+
+                it('parent + 4 array children: a < all', () => {
+                        dag((z) => [z('a', ['b', 'c', 'd', 'e'])])
+                                .edges(['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'])
+                                .nowarn()
+                })
+
+                it('reversed child order in array: a < c < b (declared order)', () => {
+                        dag((z) => [z('a', ['c', 'b'])])
+                                .edges(['a', 'c'], ['a', 'b'])
+                                .nowarn()
+                })
+
+                it('nested arrays flattened: z("a",["b",["c","d"],"e"])', () => {
+                        dag((z) => [z('a', ['b', ['c', 'd'], 'e'])])
+                                .edges(['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'])
+                                .nowarn()
+                })
+
+                it('deeply nested array: z("a",[["b","c"],["d","e"],"f"])', () => {
+                        dag((z) => [z('a', [['b', 'c'], ['d', 'e'], 'f'])])
+                                .edges(['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'], ['a', 'f'])
+                                .nowarn()
+                })
         })
 
-        // @TODO FIX
-        // it('treats nested arrays of siblings as the same level under one parent', () => {
-        //         const res = index((z) => [
-        //                 z('a', [
-        //                         ['b', 'c'],
-        //                         ['d', 'e'],
-        //                 ]),
-        //         ])
-        //         const stride = res.b - res.a
+        describe('multiple z calls', () => {
+                it('mixed: chain + parent-array', () => {
+                        dag((z) => [z('a', 'b', 'c'), z('b', ['d', 'e'])])
+                                .edges(['a', 'b'], ['b', 'c'], ['b', 'd'], ['b', 'e'])
+                                .nowarn()
+                })
 
-        //         expect(res.warns).toEqual([])
-        //         expect(res.b).toBeGreaterThan(res.a)
-        //         expect(res.c).toBeGreaterThan(res.a)
-        //         expect(res.d).toBeGreaterThan(res.a)
-        //         expect(res.e).toBeGreaterThan(res.a)
-        //         expect(res.c - res.b).toBe(stride)
-        //         expect(res.d - res.c).toBe(stride)
-        //         expect(res.e - res.d).toBe(stride)
-        // })
+                it('two separate chains: z("a","b"), z("c","d")', () => {
+                        const r = dag((z) => [z('a', 'b'), z('c', 'd')]).nowarn().raw
+                        expect(r.a).toBeLessThan(r.b)
+                        expect(r.c).toBeLessThan(r.d)
+                })
 
-        it('mixes linear and tree declarations in one build while keeping stride stable', () => {
-                const res = index((z) => [z('a', 'b', 'c'), z('b', ['d', 'e'])])
-                const stride = res.b - res.a
+                it('overlapping chains: z("a","b"), z("b","c") same as z("a","b","c")', () => {
+                        dag((z) => [z('a', 'b'), z('b', 'c')])
+                                .relative('a', 'b', 'c')
+                                .nowarn()
+                })
 
-                expect(res.warns).toEqual([])
-                expect(res.a).toBeLessThan(res.b)
-                expect(res.b).toBeLessThan(res.c)
-                expect(res.c).toBeLessThan(res.d)
-                expect(res.d).toBeLessThan(res.e)
-                expect(res.c - res.b).toBe(stride)
-                expect(res.d - res.c).toBe(stride)
-                expect(res.e - res.d).toBe(stride)
+                it('reversed declaration order: z("b","c"), z("a","b") still a < b < c', () => {
+                        dag((z) => [z('b', 'c'), z('a', 'b')])
+                                .relative('a', 'b', 'c')
+                                .nowarn()
+                })
+
+                it('multiple overlapping: z("a","b"), z("b","c"), z("c","d")', () => {
+                        dag((z) => [z('a', 'b'), z('b', 'c'), z('c', 'd')])
+                                .relative('a', 'b', 'c', 'd')
+                                .nowarn()
+                })
+
+                it('separate chains have independent ordering', () => {
+                        const r = dag((z) => [z('a', 'b'), z('c', 'd')]).nowarn().raw
+                        expect(r.b - r.a).toBe(S)
+                        expect(r.d - r.c).toBe(S)
+                })
+
+                it('three overlapping pairs form consistent chain', () => {
+                        const r = dag((z) => [z('a', 'b'), z('b', 'c'), z('c', 'd')])
+                                .relative('a', 'b', 'c', 'd')
+                                .nowarn().raw
+                        expect(r.b - r.a).toBe(S)
+                        expect(r.c - r.b).toBe(S)
+                        expect(r.d - r.c).toBe(S)
+                })
         })
 
-        it('flattens mixed nested arrays into consistent ranks above the parent', () => {
-                const res = index((z) => [z('a', ['b', ['c', 'd'], 'e'])])
-                const stride = res.b - res.a
+        describe('stride uniformity', () => {
+                it('linear chain stride is constant across all gaps', () => {
+                        const r = dag((z) => [z('a', 'b', 'c', 'd', 'e')]).nowarn().raw
+                        const stride = r.b - r.a
+                        expect(r.c - r.b).toBe(stride)
+                        expect(r.d - r.c).toBe(stride)
+                        expect(r.e - r.d).toBe(stride)
+                })
 
-                expect(res.warns).toEqual([])
-                expect(res.b).toBeGreaterThan(res.a)
-                expect(res.c).toBeGreaterThan(res.a)
-                expect(res.d).toBeGreaterThan(res.a)
-                expect(res.e).toBeGreaterThan(res.a)
-                expect(res.c - res.b).toBe(stride)
-                expect(res.d - res.c).toBe(stride)
-                expect(res.e - res.d).toBe(stride)
-        })
-
-        it('infers composite keys from linear and tree inputs together', () => {
-                const res = index((z) => [z('a', 'b', 'c'), z('c', ['d', 'e'])])
-
-                expect(res.warns).toEqual([])
-                expect(res.e).toBeGreaterThan(res.d)
-                expect(res.d).toBeGreaterThan(res.c)
-                expect(res.c).toBeGreaterThan(res.b)
-                expectTypeOf(res).toMatchTypeOf<{ a: number; b: number; c: number; d: number; e: number; warns: string[] }>()
+                it('overlapping chains produce same stride as single chain', () => {
+                        const single = dag((z) => [z('a', 'b', 'c')]).nowarn().raw
+                        const multi = dag((z) => [z('a', 'b'), z('b', 'c')]).nowarn().raw
+                        expect(multi.b - multi.a).toBe(single.b - single.a)
+                        expect(multi.c - multi.b).toBe(single.c - single.b)
+                })
         })
 })

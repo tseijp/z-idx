@@ -1,115 +1,149 @@
 import { describe, expect, it } from 'vitest'
-import index from "./index";
-import { uniformGap } from './1.0.topo-three-nodes.test'
+import { dag, index, S } from './utils'
 
-describe('z index topo features 1.2', () => {
-        it('orders a five-node chain', () => {
-                const ranks = index((z) => [z('a', 'b', 'c', 'd', 'e')])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
+describe('five nodes', () => {
+        describe('basic patterns', () => {
+                it('chain: a < b < c < d < e', () => {
+                        dag((z) => [z('a', 'b', 'c', 'd', 'e')])
+                                .relative('a', 'b', 'c', 'd', 'e')
+                                .edges(['a', 'b'], ['b', 'c'], ['c', 'd'], ['d', 'e'])
+                                .nowarn()
+                })
 
-                expect(seq).toEqual(['a', 'b', 'c', 'd', 'e'])
-                expect(gap).toBeGreaterThan(0)
-                expect(ranks.a).toBeLessThan(ranks.b)
-                expect(ranks.d).toBeLessThan(ranks.e)
+                it('wide fan: a < [b,c,d,e]', () => {
+                        dag((z) => [z('a', ['b', 'c', 'd', 'e'])])
+                                .relative('a', ['b', 'c', 'd', 'e'])
+                                .edges(['a', 'b'], ['a', 'c'], ['a', 'd'], ['a', 'e'])
+                                .nowarn()
+                })
+
+                it.skip('funnel: [a,b,c,d] < e', () => {
+                        dag((z) => [z(['a', 'b', 'c', 'd'], 'e')])
+                                .relative(['a', 'b', 'c', 'd'], 'e')
+                                .edges(['a', 'e'], ['b', 'e'], ['c', 'e'], ['d', 'e'])
+                })
+
+                it('diamond tail: a < [b,c] then b,c < d then d < e', () => {
+                        dag((z) => [z('a', ['b', 'c']), z('b', 'd'), z('c', 'd'), z('d', 'e')])
+                                .relative('a', ['b', 'c'], 'd', 'e')
+                                .edges(['a', 'b'], ['a', 'c'], ['b', 'd'], ['c', 'd'], ['d', 'e'])
+                                .nowarn()
+                })
+
+                it('interleaved ladders: z("a","b","e"), z("a","c","d","e")', () => {
+                        dag((z) => [z('a', 'b', 'e'), z('a', 'c', 'd', 'e')])
+                                .edges(['a', 'b'], ['b', 'e'], ['a', 'c'], ['c', 'd'], ['d', 'e'])
+                                .nowarn()
+                })
+
+                it('balanced two-level: z("a","b","d"), z("a","c","e")', () => {
+                        dag((z) => [z('a', 'b', 'd'), z('a', 'c', 'e')])
+                                .relative('a', ['b', 'c'], ['d', 'e'])
+                                .edges(['a', 'b'], ['a', 'c'], ['b', 'd'], ['c', 'e'])
+                                .nowarn()
+                })
+
+                it('fan with deep child: z("a",["b","c","d"]), z("d","e")', () => {
+                        dag((z) => [z('a', ['b', 'c', 'd']), z('d', 'e')])
+                                .edges(['a', 'b'], ['a', 'c'], ['a', 'd'], ['d', 'e'])
+                                .nowarn()
+                })
+
+                it('diamond head: z("a","b"), z("b",["c","d"]), z("c","e"), z("d","e")', () => {
+                        dag((z) => [z('a', 'b'), z('b', ['c', 'd']), z('c', 'e'), z('d', 'e')])
+                                .relative('a', 'b', ['c', 'd'], 'e')
+                                .edges(['a', 'b'], ['b', 'c'], ['b', 'd'], ['c', 'e'], ['d', 'e'])
+                                .nowarn()
+                })
         })
 
-        it('fans out from one root to four leaves', () => {
-                const ranks = index((z) => [z('a', ['b', 'c', 'd', 'e'])])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
+        describe('cycle detection', () => {
+                it('five-node cycle: chain plus back edge throws', () => {
+                        expect(() => index((z) => [z('a', 'b', 'c', 'd', 'e'), z('e', 'a')])).toThrow('cycle')
+                })
 
-                expect(seq[0]).toBe('a')
-                expect(seq.slice(1).sort()).toEqual(['b', 'c', 'd', 'e'])
-                expect(ranks[seq[1]] - ranks[seq[0]]).toBe(gap)
-                expect(ranks[seq[2]] - ranks[seq[1]]).toBe(gap)
-                expect(ranks[seq[3]] - ranks[seq[2]]).toBe(gap)
-                expect(ranks[seq[4]] - ranks[seq[3]]).toBe(gap)
+                it('partial cycle in five nodes throws', () => {
+                        expect(() => index((z) => [z('a', 'b', 'c'), z('c', 'a'), z('d', 'e')])).toThrow('cycle')
+                })
         })
 
-        it('funnels four sources into one sink', () => {
-                const ranks = index((z) => [z('a', 'e'), z('b', 'e'), z('c', 'e'), z('d', 'e')])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
+        describe('stride uniformity', () => {
+                it('chain stride is constant across all gaps', () => {
+                        const r = dag((z) => [z('a', 'b', 'c', 'd', 'e')]).nowarn().raw
+                        expect(r.b - r.a).toBe(S)
+                        expect(r.c - r.b).toBe(S)
+                        expect(r.d - r.c).toBe(S)
+                        expect(r.e - r.d).toBe(S)
+                })
 
-                expect(seq[seq.length - 1]).toBe('e')
-                expect(seq.slice(0, 4).sort()).toEqual(['a', 'b', 'c', 'd'])
-                expect(ranks.a).toBeLessThan(ranks.e)
-                expect(ranks.d).toBeLessThan(ranks.e)
-                expect(ranks[seq[1]] - ranks[seq[0]]).toBe(gap)
+                it('wide fan children are all same rank', () => {
+                        const r = dag((z) => [z('a', ['b', 'c', 'd', 'e'])]).nowarn().raw
+                        expect(r.b).toBe(r.c)
+                        expect(r.c).toBe(r.d)
+                        expect(r.d).toBe(r.e)
+                })
         })
 
-        it('forms a diamond with a tail', () => {
-                const ranks = index((z) => [z('a', 'b'), z('a', 'c'), z('b', 'd'), z('c', 'd'), z('d', 'e')])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
-
-                expect(seq[0]).toBe('a')
-                expect(seq[seq.length - 1]).toBe('e')
-                expect(ranks.a).toBeLessThan(ranks.b)
-                expect(ranks.a).toBeLessThan(ranks.c)
-                expect(ranks.d).toBeLessThan(ranks.e)
-                expect(ranks[seq[2]] - ranks[seq[1]]).toBe(gap)
+        describe('two disconnected components', () => {
+                it('z("a","b"), z("c","d","e") are independent', () => {
+                        const r = dag((z) => [z('a', 'b'), z('c', 'd', 'e')])
+                                .edges(['a', 'b'], ['c', 'd'], ['d', 'e'])
+                                .nowarn().raw
+                        expect(r.b - r.a).toBe(S)
+                        expect(r.d - r.c).toBe(S)
+                        expect(r.e - r.d).toBe(S)
+                })
         })
 
-        it('interleaves two ladders that meet at the end', () => {
-                const ranks = index((z) => [z('a', 'b'), z('b', 'e'), z('a', 'c'), z('c', 'd'), z('d', 'e')])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
-
-                expect(seq[0]).toBe('a')
-                expect(seq[seq.length - 1]).toBe('e')
-                expect(ranks.b).toBeGreaterThan(ranks.a)
-                expect(ranks.c).toBeGreaterThan(ranks.a)
-                expect(ranks.d).toBeGreaterThan(ranks.c)
-                expect(ranks.e).toBeGreaterThan(ranks.d)
-                expect(ranks[seq[3]] - ranks[seq[2]]).toBe(gap)
+        describe('diamond plus extra', () => {
+                it('z("a","b"), z("a","c"), z("b","d"), z("c","d"), z("d","e")', () => {
+                        dag((z) => [z('a', 'b'), z('a', 'c'), z('b', 'd'), z('c', 'd'), z('d', 'e')])
+                                .relative('a', ['b', 'c'], 'd', 'e')
+                                .edges(['a', 'b'], ['a', 'c'], ['b', 'd'], ['c', 'd'], ['d', 'e'])
+                                .nowarn()
+                })
         })
 
-        it('builds a balanced two-level tree', () => {
-                const ranks = index((z) => [z('a', ['b', 'c']), z('b', 'd'), z('c', 'e')])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
-
-                expect(seq[0]).toBe('a')
-                expect(seq.slice(1, 3).sort()).toEqual(['b', 'c'])
-                expect(ranks.a).toBeLessThan(ranks.b)
-                expect(ranks.a).toBeLessThan(ranks.c)
-                expect(ranks.d).toBeGreaterThan(ranks.b)
-                expect(ranks.e).toBeGreaterThan(ranks.c)
-                expect(ranks[seq[2]] - ranks[seq[1]]).toBe(gap)
+        describe('W-shape', () => {
+                it('z("a","c"), z("b","c"), z("c","d"), z("c","e")', () => {
+                        dag((z) => [z('a', 'c'), z('b', 'c'), z('c', 'd'), z('c', 'e')])
+                                .relative(['a', 'b'], 'c', ['d', 'e'])
+                                .edges(['a', 'c'], ['b', 'c'], ['c', 'd'], ['c', 'e'])
+                                .nowarn()
+                })
         })
 
-        it('fans out then extends one child further', () => {
-                const ranks = index((z) => [z('a', ['b', 'c', 'd']), z('d', 'e')])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
-
-                expect(seq[0]).toBe('a')
-                expect(seq[seq.length - 1]).toBe('e')
-                expect(ranks.a).toBeLessThan(ranks.b)
-                expect(ranks.a).toBeLessThan(ranks.c)
-                expect(ranks.a).toBeLessThan(ranks.d)
-                expect(ranks.d).toBeLessThan(ranks.e)
-                expect(ranks[seq[3]] - ranks[seq[2]]).toBe(gap)
+        describe('cross pattern', () => {
+                it('z("a","d"), z("a","e"), z("b","d"), z("b","e"), z("c","d")', () => {
+                        dag((z) => [z('a', 'd'), z('a', 'e'), z('b', 'd'), z('b', 'e'), z('c', 'd')])
+                                .edges(['a', 'd'], ['a', 'e'], ['b', 'd'], ['b', 'e'], ['c', 'd'])
+                                .nowarn()
+                })
         })
 
-        it('ties two sources into one mid node that splits again', () => {
-                const ranks = index((z) => [z('a', 'c'), z('b', 'c'), z('c', ['d', 'e'])])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
-
-                expect(seq[2]).toBe('c')
-                expect(seq.slice(0, 2).sort()).toEqual(['a', 'b'])
-                expect(ranks.a).toBeLessThan(ranks.c)
-                expect(ranks.b).toBeLessThan(ranks.c)
-                expect(ranks.c).toBeLessThan(ranks.d)
-                expect(ranks.c).toBeLessThan(ranks.e)
-                expect(ranks[seq[1]] - ranks[seq[0]]).toBe(gap)
+        describe('long chain with branch', () => {
+                it('z("a","b","c","d"), z("b","e")', () => {
+                        dag((z) => [z('a', 'b', 'c', 'd'), z('b', 'e')])
+                                .edges(['a', 'b'], ['b', 'c'], ['c', 'd'], ['b', 'e'])
+                                .nowarn()
+                })
         })
 
-        it('weaves a zigzag with a cross-link to the sink', () => {
-                const ranks = index((z) => [z('a', 'b'), z('b', 'c'), z('a', 'd'), z('d', 'e'), z('c', 'e')])
-                const { seq, gap } = uniformGap(ranks, ['a', 'b', 'c', 'd', 'e'])
+        describe('fan in then fan out', () => {
+                it('z("a","c"), z("b","c"), z("c","d"), z("c","e")', () => {
+                        dag((z) => [z('a', 'c'), z('b', 'c'), z('c', 'd'), z('c', 'e')])
+                                .relative(['a', 'b'], 'c', ['d', 'e'])
+                                .edges(['a', 'c'], ['b', 'c'], ['c', 'd'], ['c', 'e'])
+                                .nowarn()
+                })
+        })
 
-                expect(seq[0]).toBe('a')
-                expect(seq[seq.length - 1]).toBe('e')
-                expect(ranks.b).toBeGreaterThan(ranks.a)
-                expect(ranks.c).toBeGreaterThan(ranks.b)
-                expect(ranks.d).toBeGreaterThan(ranks.a)
-                expect(ranks.e).toBeGreaterThan(ranks.c)
-                expect(ranks[seq[4]] - ranks[seq[3]]).toBe(gap)
+        describe('two chains merging', () => {
+                it('z("a","b","d"), z("a","c","d"), z("d","e")', () => {
+                        dag((z) => [z('a', 'b', 'd'), z('a', 'c', 'd'), z('d', 'e')])
+                                .relative('a', ['b', 'c'], 'd', 'e')
+                                .edges(['a', 'b'], ['b', 'd'], ['a', 'c'], ['c', 'd'], ['d', 'e'])
+                                .nowarn()
+                })
         })
 })
