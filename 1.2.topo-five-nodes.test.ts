@@ -115,25 +115,9 @@ describe('five nodes', () => {
         })
 
         describe('long chain with branch', () => {
-                // AssertionError: expected 2048 to be 3072 // Object.is equality
-
-                // - Expected
-                // + Received
-
-                // - 3072
-                // + 2048
-
-                //  ❯ Object.relative utils.ts:18:103
-                //      16|                 relative(...levels: Level[]) {
-                //      17|                         const groups = levels.map(pack)
-                //      18|                         for (const g of groups) for (let i = 1; i < g.length; i +…
-                //        |                                                                                                       ^
-                //      19|                         for (let i = 0; i < groups.length; i += 1) for (let j = i…
-                //      20|                         return self
-                //  ❯ 1.2.topo-five-nodes.test.ts:120:34
                 it('z("a","b","c","d"), z("b","e")', () => {
                         dag((z) => [z('a', 'b', 'c', 'd'), z('b', 'e')])
-                                .relative('a', ['b', 'e'], 'c', 'd')
+                                .relative('a', 'b', ['c', 'e'], 'd')
                                 .absolute(['a', 'b'], ['b', 'c'], ['c', 'd'], ['b', 'e'])
                 })
         })
