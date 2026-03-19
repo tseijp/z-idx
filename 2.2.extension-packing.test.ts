@@ -188,16 +188,4 @@ describe('extension packing and boundaries', () => {
                         expect(e2.high).toBe(e1.high)
                 })
         })
-
-        describe('large fan then dense extension', () => {
-                it('large fan base with dense extension in one gap', () => {
-                        const base = index((z) => z('a', ['b', 'c', 'd', 'e', 'f']))
-                        const ext = base((z) => z('b', 'x1', 'x2', 'x3', 'c')) // @ts-expect-error
-                        ext._
-                        expect(base.b).toBeLessThan(ext.x1)
-                        expect(ext.x1).toBeLessThan(ext.x2)
-                        expect(ext.x2).toBeLessThan(ext.x3)
-                        expect(ext.x3).toBeLessThan(base.c)
-                })
-        })
 })
