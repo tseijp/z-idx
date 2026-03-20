@@ -83,6 +83,7 @@ const collect = (v: unknown, out: Pair[]): void => {
         }
         throw new Error('invalid pair: ${v}')
 }
+
 const graph = (edge: Pair[], seeds?: ZRes): Map<string, Data> => {
         const nodes = new Map<string, Data>()
         const get = (key: string): Data => {
@@ -104,7 +105,7 @@ const topo = (nodes: Map<string, Data>): Data[] => {
         const queue: Data[] = []
         for (const [, node] of nodes) if (node.indeg === 0) queue.push(node)
         for (const { children } of queue) for (const child of children) if (--child.indeg === 0) queue.push(child)
-        if (queue.length !== nodes.size) throw new Error('cycle')
+        if (queue.length !== nodes.size) throw new Error(`cycle: ${[...nodes.values()].find((n) => n.indeg > 0)!.key}`)
         return queue
 }
 const depth = (queue: Data[]) => {

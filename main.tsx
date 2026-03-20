@@ -152,7 +152,7 @@ const MenuPlayground = ({ next }: { next: Record<string, number> }) => {
         const docsLabel = lang === 'ja' ? 'Ja' : 'En'
         return (
                 <div className="relative my-x p-x w-full h bg-grad rounded-3x shadow-lg text-ink overflow-hidden font-sf">
-                        <div className="flex p-x gap-x items-center wrap bg-white rounded-2x shadow-md" style={{ zIndex: next['menu bar'] }}>
+                        <div className="flex p-x gap-x items-center wrap bg-white rounded-2x shadow-md">
                                 {menuTree.map((item) => (
                                         <button key={item.id} className="p-yx bg-chip rounded-x shadow-inset text-ink font-bold cursor" onClick={() => openRoot(item.id)}>
                                                 {item.id === 'docs' ? docsLabel : item.label}
@@ -163,11 +163,11 @@ const MenuPlayground = ({ next }: { next: Record<string, number> }) => {
                                 </a>
                         </div>
                         <Overlay show={!!path.length} z={next['primary overlay']} close={() => close(0)} />
-                        <PanelSlot show={!!path.length} z={next['primary menu']} left="left-x">
+                        <PanelSlot show={!!path.length} z={next['primary modal']} left="left-x">
                                 <PanelList items={panelOne} drill={(item) => drill(0, item)} />
                         </PanelSlot>
                         <Overlay show={path.length > 1} z={next['secondary overlay']} close={() => close(1)} />
-                        <PanelSlot show={path.length > 1} z={next['secondary menu']} left="left-2x">
+                        <PanelSlot show={path.length > 1} z={next['secondary modal']} left="left-2x">
                                 <PanelList items={panelTwo} drill={(item) => drill(1, item)} />
                         </PanelSlot>
                 </div>

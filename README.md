@@ -55,15 +55,9 @@ npm i z-idx
 
 ### Example
 
-<!-- prettier-ignore -->
 ```tsx
-const base = index((z) => [
-    z('menu bar', 'primary overlay', ['primary menu', 'Github']),
-])
-
-const next = base((z) => [
-    z(['primary menu', 'Github'], 'secondary overlay', 'secondary menu'),
-])
+const base = index((z) => z('primary overlay', ['primary modal', 'Github']))
+const next = base((z) => z('primary modal', 'secondary overlay', 'secondary modal'))
 
 if (base.Github !== next.Github) throw Error()
 
@@ -117,7 +111,7 @@ Composite inference confirms all keys `{a,b,c,d,e}` appear numerically typed.
 ### Pair Recursion
 
 Edge can be reused as children.
-Building `const chain = z('b','c','d'); z('a',[chain,'e'])` links `a` under the chain root and continues equal steps through `e->c->d`.
+Building `z('a',[z('b','c','d'),'e'])` links `a` under the chain root and continues equal steps through `e->c->d`.
 Multiple tagged subtrees under one parent keep uniform spacing (`a` below `b<c<d<e`).
 Mixed top-level chains with sibling arrays maintain one stride while branching (`a<b<d<e<c<f<g`).
 Inference spans linear, array, and tagged inputs ensuring the returned shape exposes every node.

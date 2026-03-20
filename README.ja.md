@@ -55,16 +55,9 @@ npm i z-idx
 
 ### Example
 
-<!-- prettier-ignore -->
 ```tsx
-const base = index((z) => [
-    z('menu bar', 'primary overlay', 'primary menu'),
-    z('primary overlay', 'Github')
-])
-
-const next = base((z) => [
-    z('secondary overlay', 'primary menu', 'secondary menu'),
-])
+const base = index((z) => z('primary overlay', ['primary modal', 'Github']))
+const next = base((z) => z('primary modal', 'secondary overlay', 'secondary modal'))
 
 if (base.Github !== next.Github) throw Error()
 
@@ -118,7 +111,7 @@ Edge は配列内に入っても埋め込まれたキー集合を保持するた
 ### Pair Recursion
 
 Edge は子として再利用できる。
-`const chain = z('b','c','d'); z('a',[chain,'e'])` で `a` をチェーン根の下に結び、`e->c->d` まで等間隔が続く。
+`z('a',[z('b','c','d'),'e'])` で `a` をチェーン根の下に結び、`e->c->d` まで等間隔が続く。
 複数の tagged サブツリーが同じ親を持っても等間隔（`a` の上に `b<c<d<e`）。
 トップレベルのチェーンと兄弟配列を混ぜても一つのステップで枝分かれ（`a<b<d<e<c<f<g`）。
 直列・配列・tagged 入力すべてをまたいで推論し、返り値が全ノードを露出する。
@@ -1184,7 +1177,7 @@ flowchart LR
     a --> b
     b --> c
     c --> d
-    e --> e
+    d --> e
 ```
 
 ```ts
