@@ -56,7 +56,7 @@ npm i z-idx
 ### Example
 
 ```tsx
-const base = index((z) => z('primary overlay', ['primary modal', 'Github']))
+const base = index((z) => z('primary overlay', ['primary modal', 'Github']), { step: 1 })
 const next = base((z) => z('primary modal', 'secondary overlay', 'secondary modal'))
 
 if (base.Github !== next.Github) throw Error()
@@ -82,7 +82,7 @@ z-idx はヘルパー z を受け取る。`z('a','b','c')` のように複数文
 
 ### Type Inference
 
-z-idx の戻り値は呼び出し可能かつマップ的なオブジェクトを返す。build 中に現れたすべてのキーが返り値の型としてキャプチャされ、
+z-idx の戻り値は呼び出し可能かつマップオブジェクトを返す。build 中に現れたすべてのキーが返り値の型としてキャプチャされ、
 エディタはプロパティ補完（`base.a`, `base.b`）や拡張時の既存キー提示（`base((z)=>[z('b','x','c')])`）を行える。
 Edge は配列内に入っても埋め込まれたキー集合を保持するため、深く合成したツリーでも補完がすべて表示される。
 

@@ -4,7 +4,7 @@ import README from './README.md?raw' // @ts-ignore
 import README_JA from './README.ja.md?raw'
 import markdownit from 'markdown-it'
 import mermaid from 'mermaid'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
@@ -27,6 +27,53 @@ const toTree = (input: React.ReactNode): NodeTree[] => {
                 items.push(node)
         }
         return items
+}
+
+const createBadge = () => {
+        const badge = document.createElement('div')
+        const outline = document.createElement('div')
+        const base = { position: 'fixed', pointerEvents: 'none' } as const
+        Object.assign(badge.style, base, { transform: 'translate(-50%, -50%)', background: '#0B8CE9', color: '#fff', padding: '0px 3px', borderRadius: '3px', fontSize: 'calc(1rem/1.618)', zIndex: '2147483647' })
+        Object.assign(outline.style, base, { border: '1px solid #0B8CE9', zIndex: '2147483646' })
+        badge.hidden = true
+        outline.hidden = true
+        let x = 0
+        let y = 0
+        let havePoint = false
+        const show = (el: HTMLElement, z: string, name?: string) => {
+                const r = el.getBoundingClientRect()
+                badge.textContent = `${name || 'z'}: ${z}`
+                badge.hidden = false
+                outline.hidden = false
+                Object.assign(badge.style, { left: `${r.left}px`, top: `${r.top}px` })
+                Object.assign(outline.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` })
+        }
+        const hide = () => {
+                badge.hidden = true
+                outline.hidden = true
+        }
+        const render = (el = document.elementFromPoint(x, y)) => {
+                if (!havePoint) return
+                const hit = findZIndexElement(el as HTMLElement)
+                if (!hit) return hide()
+                show(hit.el, hit.z, hit.name)
+        }
+        const move = (event: PointerEvent) => {
+                havePoint = true
+                x = event.clientX
+                y = event.clientY
+                render(event.target as HTMLElement)
+        }
+        const mount = () => {
+                document.body.append(badge, outline)
+                document.addEventListener('pointermove', move, true)
+                return () => {
+                        document.removeEventListener('pointermove', move, true)
+                        badge.remove()
+                        outline.remove()
+                }
+        }
+        return { hide, mount, render }
 }
 const runtime: { render?: (lang: 'en' | 'ja') => void; currentLang: 'en' | 'ja' } = { currentLang: 'en' }
 const NavNode = (_: NodeProps) => null
@@ -99,9 +146,9 @@ const menuTree = toTree(
                 </NavNode>
         </>
 )
-const Overlay = ({ show, z, close }: { show: boolean; z: number; close: () => void }) => <div className="absolute inset-0 bg-overlay glass" style={{ zIndex: z, display: show ? 'block' : 'none' }} onClick={close} />
-const PanelSlot = ({ show, z, left, children }: { show: boolean; z: number; left: string; children: React.ReactNode }) => (
-        <div className={`absolute p-x w top-68 ${left} grid gap-y bg-white-strong rounded-2x shadow-xl`} style={{ zIndex: z, display: show ? 'grid' : 'none' }}>
+const Overlay = ({ show, z, name, close }: { show: boolean; z: number; name: string; close: () => void }) => <div className="absolute inset-0 bg-overlay glass" data-z-idx-name={name} style={{ zIndex: z, display: show ? 'block' : 'none' }} onClick={close} />
+const PanelSlot = ({ show, z, name, left, children }: { show: boolean; z: number; name: string; left: string; children: React.ReactNode }) => (
+        <div className={`absolute p-x w top-68 ${left} grid gap-y bg-white-strong rounded-2x shadow-xl`} data-z-idx-name={name} style={{ zIndex: z, display: show ? 'grid' : 'none' }}>
                 {children}
         </div>
 )
@@ -116,6 +163,7 @@ const PanelList = ({ items, drill }: { items: NodeTree[]; drill: (node: NodeTree
         </>
 )
 const MenuPlayground = ({ next }: { next: Record<string, number> }) => {
+        const [badge] = useState(createBadge)
         const [path, setPath] = React.useState<string[]>([])
         const [lang, setLang] = React.useState<'en' | 'ja'>(runtime.currentLang)
         const openRoot = (id: string) => setPath([id])
@@ -125,6 +173,7 @@ const MenuPlayground = ({ next }: { next: Record<string, number> }) => {
                 else if (node.id === 'lang-ja') setLang('ja')
                 if (node.action) node.action()
                 if (node.href) {
+                        badge.hide()
                         if (node.href.startsWith('#')) {
                                 const target = document.querySelector(node.href)
                                 if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -146,6 +195,8 @@ const MenuPlayground = ({ next }: { next: Record<string, number> }) => {
                 }
                 return current
         }
+        useEffect(() => badge.mount(), [])
+        useEffect(() => badge.render(), [path])
         const pickChildren = (nodes: NodeTree[], path: string[], depth: number) => resolveNode(nodes, path.slice(0, depth + 1))?.children || []
         const panelOne = path.length ? pickChildren(menuTree, path, 0) : []
         const panelTwo = path.length > 1 ? pickChildren(menuTree, path, 1) : []
@@ -158,16 +209,16 @@ const MenuPlayground = ({ next }: { next: Record<string, number> }) => {
                                                 {item.id === 'docs' ? docsLabel : item.label}
                                         </button>
                                 ))}
-                                <a href="https://github.com/tseijp/z-idx" className="ml-auto mr-x text-onyx font-bold tracking" style={{ zIndex: next['Github'] }} target="_blank" rel="noreferrer">
+                                <a href="https://github.com/tseijp/z-idx" className="ml-auto mr-x text-onyx font-bold tracking" data-z-idx-name="Github" style={{ zIndex: next['Github'] }} target="_blank" rel="noreferrer">
                                         GitHub
                                 </a>
                         </div>
-                        <Overlay show={!!path.length} z={next['primary overlay']} close={() => close(0)} />
-                        <PanelSlot show={!!path.length} z={next['primary modal']} left="left-x">
+                        <Overlay show={!!path.length} z={next['primary overlay']} name="primary overlay" close={() => close(0)} />
+                        <PanelSlot show={!!path.length} z={next['primary modal']} name="primary modal" left="left-x">
                                 <PanelList items={panelOne} drill={(item) => drill(0, item)} />
                         </PanelSlot>
-                        <Overlay show={path.length > 1} z={next['secondary overlay']} close={() => close(1)} />
-                        <PanelSlot show={path.length > 1} z={next['secondary modal']} left="left-2x">
+                        <Overlay show={path.length > 1} z={next['secondary overlay']} name="secondary overlay" close={() => close(1)} />
+                        <PanelSlot show={path.length > 1} z={next['secondary modal']} name="secondary modal" left="left-2x">
                                 <PanelList items={panelTwo} drill={(item) => drill(1, item)} />
                         </PanelSlot>
                 </div>
@@ -205,7 +256,14 @@ const Mermaid = ({ code, id }: { code: string; id: string }) => (
                 }
         />
 )
-
+const findZIndexElement = (el: HTMLElement | null): { el: HTMLElement; z: string; name?: string } | null => {
+        while (el) {
+                const z = getComputedStyle(el).zIndex
+                if (z !== 'auto' && !Number.isNaN(Number(z))) return { el, z, name: el.getAttribute('data-z-idx-name') || undefined }
+                el = el.parentElement
+        }
+        return null
+}
 const md = markdownit({ html: true, linkify: true, typographer: true })
 md.renderer.rules.code_inline = (tokens, idx) => `<code class="code-block" data-lang="ts" data-code="${encodeURIComponent(tokens[idx].content)}" data-inline="1"></code>`
 md.renderer.rules.fence = (tokens, idx) => {
