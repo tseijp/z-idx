@@ -1,13 +1,192 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
         <head>
                 <meta charset="UTF-8" />
-                <link rel="icon" type="image/svg+xml" href="/vite.svg" />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                <title>z-idx</title>
+                <title>z-idx - Declarative z-index Management with DAG Topological Sorting</title>
+                <meta name="description" content="z-idx converts declarative stacking rules into stable numeric z-index layers using DAG topological sorting. Full TypeScript inference, zero dependencies. Works with React, Vue, and any UI library." />
+                <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+                <meta name="author" content="tseijp" />
+                <meta name="keywords" content="z-index, z-index management, CSS stacking order, stacking context, DAG, topological sort, TypeScript, React, Vue, UI library, design system, CSS layers, npm package" />
+                <link rel="canonical" href="https://z-idx.tsei.jp/" />
+                <link rel="author" href="https://github.com/tseijp" />
+                <meta name="theme-color" content="#ffffff" />
+                <meta name="color-scheme" content="light" />
+                <link rel="icon" href="/favicon/favicon.ico" sizes="48x48" />
+                <link rel="icon" type="image/png" href="/favicon/favicon-32x32.png" sizes="32x32" />
+                <link rel="icon" type="image/png" href="/favicon/favicon-16x16.png" sizes="16x16" />
+                <link rel="apple-touch-icon" href="/favicon/apple-touch-icon.png" />
+                <link rel="manifest" href="/favicon/site.webmanifest" />
+                <meta name="apple-mobile-web-app-capable" content="yes" />
+                <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+                <meta name="apple-mobile-web-app-title" content="z-idx" />
+                <meta name="format-detection" content="telephone=no" />
+                <meta property="og:title" content="z-idx - Declarative z-index Management with DAG Topological Sorting" />
+                <meta property="og:description" content="Turn stacking rules into stable numeric z-index layers. Type-safe ordering with topological sorting. Zero dependencies." />
+                <meta property="og:image" content="https://z-idx.tsei.jp/og-image.jpg" />
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
+                <meta property="og:image:alt" content="z-idx: declarative z-index management using DAG topological sorting" />
+                <meta property="og:url" content="https://z-idx.tsei.jp/" />
+                <meta property="og:type" content="website" />
+                <meta property="og:site_name" content="z-idx" />
+                <meta property="og:locale" content="en_US" />
+                <meta property="og:locale:alternate" content="ja_JP" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:site" content="@tseijp" />
+                <meta name="twitter:creator" content="@tseijp" />
+                <meta name="twitter:title" content="z-idx - Declarative z-index Management" />
+                <meta name="twitter:description" content="Turn stacking rules into stable numeric z-index layers. Type-safe ordering with topological sorting. Zero deps." />
+                <meta name="twitter:image" content="https://z-idx.tsei.jp/og-image.jpg" />
+                <meta name="twitter:image:alt" content="z-idx: declarative z-index management using DAG topological sorting" />
+                <link rel="dns-prefetch" href="https://github.com" />
+                <link rel="dns-prefetch" href="https://www.npmjs.com" />
+                <link rel="dns-prefetch" href="https://registry.npmjs.org" />
+                <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+                <script type="application/ld+json">
+                        {
+                                "@context": "https://schema.org",
+                                "@graph": [
+                                        {
+                                                "@type": "WebSite",
+                                                "name": "z-idx",
+                                                "url": "https://z-idx.tsei.jp/",
+                                                "description": "z-index DAG builder converting declarative stacking rules into stable numeric layers for shared UI libraries."
+                                        },
+                                        {
+                                                "@type": "SoftwareSourceCode",
+                                                "name": "z-idx",
+                                                "description": "z-index DAG builder that converts declarative stacking rules into stable numeric layers for shared UI libraries. Declare ordering relationships and get stable, type-safe z-index values that survive extension and override.",
+                                                "url": "https://z-idx.tsei.jp",
+                                                "codeRepository": "https://github.com/tseijp/z-idx",
+                                                "programmingLanguage": ["TypeScript", "JavaScript"],
+                                                "runtimePlatform": ["Node.js", "Browser"],
+                                                "license": "https://opensource.org/licenses/MIT",
+                                                "version": "1.1.0",
+                                                "isAccessibleForFree": true,
+                                                "keywords": "z-index, CSS stacking order, DAG, topological sort, TypeScript, UI library, design system",
+                                                "author": {
+                                                        "@type": "Person",
+                                                        "name": "tseijp",
+                                                        "url": "https://tsei.jp",
+                                                        "sameAs": ["https://github.com/tseijp", "https://twitter.com/tseijp", "https://www.npmjs.com/~tseijp"]
+                                                },
+                                                "offers": {
+                                                        "@type": "Offer",
+                                                        "price": "0",
+                                                        "priceCurrency": "USD"
+                                                }
+                                        },
+                                        {
+                                                "@type": "FAQPage",
+                                                "mainEntity": [
+                                                        {
+                                                                "@type": "Question",
+                                                                "name": "What is z-idx?",
+                                                                "acceptedAnswer": {
+                                                                        "@type": "Answer",
+                                                                        "text": "z-idx is a zero-dependency npm package that converts declarative z-index stacking rules into stable numeric layers using DAG-based topological sorting. It provides full TypeScript type inference for all z-index keys."
+                                                                }
+                                                        },
+                                                        {
+                                                                "@type": "Question",
+                                                                "name": "How does z-idx solve z-index conflicts?",
+                                                                "acceptedAnswer": {
+                                                                        "@type": "Answer",
+                                                                        "text": "Instead of manually assigning z-index numbers, you declare ordering relationships like z('overlay', 'modal', 'tooltip'). z-idx uses Kahn's topological sort to compute stable numeric ranks with consistent spacing, eliminating conflicts even when extended by downstream packages."
+                                                                }
+                                                        },
+                                                        {
+                                                                "@type": "Question",
+                                                                "name": "Does z-idx work with React, Vue, and other frameworks?",
+                                                                "acceptedAnswer": {
+                                                                        "@type": "Answer",
+                                                                        "text": "Yes. z-idx is framework-agnostic. It returns plain numeric values usable with any CSS-in-JS solution, inline styles, or CSS custom properties in React, Vue, Svelte, Solid, or vanilla JavaScript."
+                                                                }
+                                                        },
+                                                        {
+                                                                "@type": "Question",
+                                                                "name": "Can multiple packages share z-index values without conflicts?",
+                                                                "acceptedAnswer": {
+                                                                        "@type": "Answer",
+                                                                        "text": "Yes. z-idx extensions preserve all previously computed values while inserting new nodes between existing ones. A UI library defines base stacking, and downstream services extend it without breaking the original ordering."
+                                                                }
+                                                        }
+                                                ]
+                                        },
+                                        {
+                                                "@type": "BreadcrumbList",
+                                                "itemListElement": [
+                                                        {
+                                                                "@type": "ListItem",
+                                                                "position": 1,
+                                                                "name": "z-idx",
+                                                                "item": "https://z-idx.tsei.jp/"
+                                                        }
+                                                ]
+                                        }
+                                ]
+                        }
+                </script>
         </head>
         <body>
                 <div id="app"></div>
+                <noscript>
+                        <style>
+                                .noscript-content {
+                                        max-width: 48rem;
+                                        margin: 0 auto;
+                                        padding: 2rem;
+                                        font-family: system-ui, -apple-system, sans-serif;
+                                        line-height: 1.6;
+                                        color: #1f2937;
+                                }
+                                .noscript-content h1 {
+                                        font-size: 2rem;
+                                        margin-bottom: 0.25rem;
+                                }
+                                .noscript-content h2 {
+                                        font-size: 1.25rem;
+                                        margin-top: 1.5rem;
+                                }
+                                .noscript-content pre {
+                                        background: #f5f5f5;
+                                        padding: 1rem;
+                                        border-radius: 0.5rem;
+                                        overflow-x: auto;
+                                }
+                                .noscript-content code {
+                                        font-family: ui-monospace, monospace;
+                                        font-size: 0.9em;
+                                }
+                                .noscript-content a {
+                                        color: #0b8ce9;
+                                }
+                        </style>
+                        <div class="noscript-content">
+                                <h1>z-idx</h1>
+                                <p>z-index DAG builder converting declarative stacking rules into stable numeric layers for shared UI libraries.</p>
+                                <h2>Install</h2>
+                                <pre><code>npm i z-idx</code></pre>
+                                <h2>Usage</h2>
+                                <pre><code>import { index } from 'z-idx'
+
+const base = index((z) =&gt; z('overlay', 'modal', 'tooltip'))
+// base.overlay = 1024, base.modal = 2048, base.tooltip = 3072
+
+// Extend without breaking existing values
+const next = base((z) =&gt; z('modal', 'dialog', 'tooltip'))
+// base.overlay === next.overlay (stable)</code></pre>
+                                <h2>Features</h2>
+                                <p>Declare ordering relationships instead of assigning magic numbers. z-idx uses Kahn's topological sort over a directed acyclic graph to compute stable numeric ranks with consistent spacing. Extensions preserve all previously seeded values while inserting new nodes between existing ones. Full TypeScript type inference surfaces every key as autocomplete in your editor. Zero dependencies.</p>
+                                <h2>Links</h2>
+                                <p>
+                                        <a href="https://github.com/tseijp/z-idx">GitHub</a> &#183; <a href="https://www.npmjs.com/package/z-idx">npm</a> &#183;
+                                        <a href="https://twitter.com/tseijp">@tseijp</a>
+                                </p>
+                                <p>Enable JavaScript for interactive documentation with live code examples and DAG visualizations.</p>
+                        </div>
+                </noscript>
                 <script type="module" src="/main.tsx"></script>
         </body>
 </html>
