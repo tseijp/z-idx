@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { absolute, relative, S } from './utils'
-import { index } from './index'
+import { index } from '../index'
 
 describe('Edge recursion', () => {
         describe('simple tagged children', () => {

@@ -28,7 +28,6 @@ const toTree = (input: React.ReactNode): NodeTree[] => {
         }
         return items
 }
-
 const createBadge = () => {
         const badge = document.createElement('div')
         const outline = document.createElement('div')
@@ -129,19 +128,19 @@ const menuTree = toTree(
                 </NavNode>
                 <NavNode id="cases" label="Suites">
                         <NavNode id="pair" label="Pair Catalogue" note="0.*.pair-*.test.ts">
-                                <NavNode id="pair-basics" label="pair-basics" note="0.0.pair-basics.test.ts" href="https://github.com/tseijp/z-idx/blob/main/0.0.pair-basics.test.ts" />
-                                <NavNode id="pair-recursion" label="pair-recursion" note="0.1.pair-recursion.test.ts" href="https://github.com/tseijp/z-idx/blob/main/0.1.pair-recursion.test.ts" />
-                                <NavNode id="pair-inference" label="pair-inference" note="0.2.pair-inference.test.ts" href="https://github.com/tseijp/z-idx/blob/main/0.2.pair-inference.test.ts" />
+                                <NavNode id="pair-basics" label="pair-basics" note="0.0.pair-basics.test.ts" href="https://github.com/tseijp/z-idx/blob/main/test/0.0.pair-basics.test.ts" />
+                                <NavNode id="pair-recursion" label="pair-recursion" note="0.1.pair-recursion.test.ts" href="https://github.com/tseijp/z-idx/blob/main/test/0.1.pair-recursion.test.ts" />
+                                <NavNode id="pair-inference" label="pair-inference" note="0.2.pair-inference.test.ts" href="https://github.com/tseijp/z-idx/blob/main/test/0.2.pair-inference.test.ts" />
                         </NavNode>
                         <NavNode id="topo" label="Topology Atlas" note="1.*.topo-*-nodes.test.ts">
-                                <NavNode id="topo-three" label="topo-three-nodes" note="1.0.topo-three-nodes.test.ts" href="https://github.com/tseijp/z-idx/blob/main/1.0.topo-three-nodes.test.ts" />
-                                <NavNode id="topo-four" label="topo-four-nodes" note="1.1.topo-four-nodes.test.ts" href="https://github.com/tseijp/z-idx/blob/main/1.1.topo-four-nodes.test.ts" />
-                                <NavNode id="topo-five" label="topo-five-nodes" note="1.2.topo-five-nodes.test.ts" href="https://github.com/tseijp/z-idx/blob/main/1.2.topo-five-nodes.test.ts" />
+                                <NavNode id="topo-three" label="topo-three-nodes" note="1.0.topo-three-nodes.test.ts" href="https://github.com/tseijp/z-idx/blob/main/test/1.0.topo-three-nodes.test.ts" />
+                                <NavNode id="topo-four" label="topo-four-nodes" note="1.1.topo-four-nodes.test.ts" href="https://github.com/tseijp/z-idx/blob/main/test/1.1.topo-four-nodes.test.ts" />
+                                <NavNode id="topo-five" label="topo-five-nodes" note="1.2.topo-five-nodes.test.ts" href="https://github.com/tseijp/z-idx/blob/main/test/1.2.topo-five-nodes.test.ts" />
                         </NavNode>
                         <NavNode id="ext" label="Extensions" note="2.*.extension-*.test.ts">
-                                <NavNode id="ext-stability" label="extension-stability" note="2.0.extension-stability.test.ts" href="https://github.com/tseijp/z-idx/blob/main/2.0.extension-stability.test.ts" />
-                                <NavNode id="ext-density" label="extension-density" note="2.1.extension-density.test.ts" href="https://github.com/tseijp/z-idx/blob/main/2.1.extension-density.test.ts" />
-                                <NavNode id="ext-packing" label="extension-packing" note="2.2.extension-packing.test.ts" href="https://github.com/tseijp/z-idx/blob/main/2.2.extension-packing.test.ts" />
+                                <NavNode id="ext-stability" label="extension-stability" note="2.0.extension-stability.test.ts" href="https://github.com/tseijp/z-idx/blob/main/test/2.0.extension-stability.test.ts" />
+                                <NavNode id="ext-density" label="extension-density" note="2.1.extension-density.test.ts" href="https://github.com/tseijp/z-idx/blob/main/test/2.1.extension-density.test.ts" />
+                                <NavNode id="ext-packing" label="extension-packing" note="2.2.extension-packing.test.ts" href="https://github.com/tseijp/z-idx/blob/main/test/2.2.extension-packing.test.ts" />
                         </NavNode>
                 </NavNode>
         </>
@@ -271,7 +270,6 @@ md.renderer.rules.fence = (tokens, idx) => {
         if (info === 'mermaid') return `<div class="mermaid-block" data-code="${encodeURIComponent(content)}"></div>`
         return `<div class="code-block" data-lang="${info}" data-code="${encodeURIComponent(content)}"></div>`
 }
-
 const htmlEn = md.render(README)
 const htmlJa = md.render(README_JA)
 const slug = (s: string) =>
@@ -279,7 +277,6 @@ const slug = (s: string) =>
                 .toLowerCase()
                 .replace(/[^a-z0-9]+/g, '-')
                 .replace(/(^-|-$)/g, '')
-
 const App = () => {
         const [blocks, setBlocks] = React.useState<HTMLElement[]>([])
         const [charts, setCharts] = React.useState<HTMLElement[]>([])
@@ -319,8 +316,6 @@ const App = () => {
                 </>
         )
 }
-
 createRoot(document.getElementById('app')!).render(<App />)
-
 // @ts-ignore
 window.index = index

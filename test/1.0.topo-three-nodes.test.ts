@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { index } from './index'
+import { index } from '../index'
 import { absolute, relative, S } from './utils'
 
 describe('three nodes', () => {

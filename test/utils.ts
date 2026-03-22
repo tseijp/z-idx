@@ -1,5 +1,5 @@
 import { expect } from 'vitest'
-import type { ZApi } from './index'
+import type { ZApi } from '../index'
 
 export const S = 1 << 10
 export const mid = (lo: number, up: number) => lo + ((up - lo) >> 1)

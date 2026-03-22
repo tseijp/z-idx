@@ -67,7 +67,7 @@ render(<MenuPlayground next={next} />)
 ### Purpose
 
 z-idx turns declarative partial-order z-relations into numeric stacking ranks that stay stable when extended.
-It accepts linear chains, parent-to-children trees, and nested pairs,
+It accepts linear chains, parent-to-children trees, and nest,
 lifting all key names into TypeScript inference so downstream packages share identical numbers even after override phases.
 
 ## Rationale
@@ -105,19 +105,18 @@ Deterministic stride across linear chains: `z('a','b','c','d')` yields ascending
 Parent-array flattening: `z('a',['b','c','d'])` keeps `a` below each child and places siblings at the same rank.
 Mixed declarations co-exist: a chain plus subtree (`z('a','b','c'), z('b',['d','e'])`) still keeps a uniform step.
 Deeply nested arrays collapse into one level above the parent while preserving sibling rank equality.
-Composite inference confirms all keys `{a,b,c,d,e}` appear numerically typed.
 
 ### Pair Recursion
 
 Edge can be reused as children.
 Building `z('a',[z('b','c','d'),'e'])` links `a` below the chain `b<c<d` and also below the sibling `e`.
-Multiple tagged subtrees under one parent share the parent as lower bound and maintain their own internal ordering.
+Multiple subtrees under one parent share the parent as lower bound and maintain their own internal ordering.
 Mixed top-level chains with sibling arrays maintain uniform stride while branching at each fork point.
-Inference spans linear, array, and tagged inputs ensuring the returned shape exposes every node.
+Inference spans linear and array inputs ensuring the returned shape exposes every node.
 
 ### Pair Inference
 
-Nested tagged subtrees recurse without losing step: `z('a',[z('b',[z('c','d'),'e']), z('f',['g'])])` yields monotone ranks where `a` sits below both `b` and `f`, with `b` below `c<d` and `e`, while `f` sits below `g`.
+Nested subtrees recurse without losing step: `z('a',[z('b',[z('c','d'),'e']), z('f',['g'])])` yields monotone ranks where `a` sits below both `b` and `f`, with `b` below `c<d` and `e`, while `f` sits below `g`.
 Deeply wrapped sibling arrays such as `z('a',[['b','c'],['d','e'],'f'])` flatten into ordered groups above `a` where sub-arrays introduce ordering between groups.
 Extensions that combine chain and tree forms leave seeds untouched while placing new nodes between them;
 new keys remain greater than their lower bounds and below preserved uppers.

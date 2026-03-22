@@ -26,22 +26,22 @@ export type ZExt<K extends string = string> = {
 export type Data = { key: string; children: Data[]; parents: Data[]; indeg: number; lo: number; hi: number; up: number; depth: number }
 export type Config = { seeds?: ZRes; inf?: number; step?: number; start?: number; mode?: 'dyadic' | 'floor'; divide?: (n: number) => number }
 const SYM = Symbol('z')
-const { max, min } = Math
+const { clz32, floor, max, min } = Math
 const divisor = (mode: Config['mode']): Config['divide'] => {
-        if (mode === 'floor') return (n) => max(1, Math.floor(n))
+        if (mode === 'floor') return (n) => floor(n)
         return (n) => {
                 if (n <= 1) return 1
-                return 1 << (31 - Math.clz32(n))
+                return 1 << (31 - clz32(n))
         }
 }
 function* backward<T>(arr: T[]) {
         for (let i = arr.length - 1; i >= 0; i--) yield arr[i]
 }
+const isZFun = (v: unknown): v is ZRes => typeof v === 'function'
 const isEdge = (v: unknown): v is Edge => Array.isArray(v) && SYM in v
 const gather = (n: Node): { entries: string[]; edge: readonly Pair[] } => {
         if (typeof n === 'string') return { entries: [n], edge: [] }
-        if (typeof n === 'function') {
-                // @ts-ignore
+        if (isZFun(n)) {
                 const entries = Object.keys(n).sort((a, b) => n[a] - n[b])
                 const edge: Pair[] = []
                 for (let i = 0; i < entries.length - 1; i++) edge.push([entries[i], entries[i + 1]])
@@ -84,7 +84,6 @@ const collect = (v: unknown, out: Pair[]): void => {
         }
         throw new Error('invalid pair: ${v}')
 }
-
 const graph = (edge: Pair[], inf: number, seeds?: ZRes): Map<string, Data> => {
         const nodes = new Map<string, Data>()
         const get = (key: string): Data => {
@@ -115,7 +114,6 @@ const depth = (queue: Data[]) => {
                 for (const child of node.children) child.depth = max(child.depth, next)
         }
 }
-
 const assign = (edge: Pair[], { seeds, inf = 1073741824, mode, step = 1024, start = step, divide = divisor(mode)! }: Config = {}): ZRes => {
         const nodes = graph(edge, inf, seeds)
         const queue = topo(nodes)
