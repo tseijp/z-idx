@@ -74,7 +74,7 @@ const createBadge = () => {
         }
         return { hide, mount, render }
 }
-const runtime: { render?: (lang: 'en' | 'ja') => void; currentLang: 'en' | 'ja' } = { currentLang: 'en' }
+const runtime: { render?: (lang: 'en' | 'ja') => void; currentPath?: string[]; currentLang: 'en' | 'ja' } = { currentLang: 'en' }
 const NavNode = (_: NodeProps) => null
 const menuTree = toTree(
         <>
@@ -163,10 +163,10 @@ const PanelList = ({ items, drill }: { items: NodeTree[]; drill: (node: NodeTree
 )
 const MenuPlayground = ({ next }: { next: Record<string, number> }) => {
         const [badge] = useState(createBadge)
-        const [path, setPath] = React.useState<string[]>([])
+        const [path, setPath] = React.useState<string[]>(runtime.currentPath ?? [])
         const [lang, setLang] = React.useState<'en' | 'ja'>(runtime.currentLang)
-        const openRoot = (id: string) => setPath([id])
-        const close = (depth: number) => setPath((prev) => prev.slice(0, depth))
+        const openRoot = (id: string) => setPath((runtime.currentPath = [id]))
+        const close = (depth: number) => setPath((prev) => (runtime.currentPath = prev.slice(0, depth)))
         const drill = (depth: number, node: NodeTree) => {
                 if (node.id === 'lang-en') setLang('en')
                 else if (node.id === 'lang-ja') setLang('ja')
@@ -182,7 +182,7 @@ const MenuPlayground = ({ next }: { next: Record<string, number> }) => {
                         setPath((prev) => {
                                 const next = prev.slice(0, depth + 1)
                                 next[depth + 1] = node.id
-                                return next
+                                return (runtime.currentPath = next)
                         })
         }
         const resolveNode = (nodes: NodeTree[], path: string[]) => {
