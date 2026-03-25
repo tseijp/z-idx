@@ -148,8 +148,8 @@ const assign = (edge: Pair[], { seeds, inf = 1073741824, mode, step = 1024, star
                         const diff = divide(node.hi / span)
                         res[node.key] = node.hi - diff * node.up
                 } else if (LO) {
-                        res[node.key] = node.lo + step * node.depth
-                } else throw new Error(`unreachable unbounded node: ${node.key}`)
+                        res[node.key] = node.lo + node.depth * step
+                } else res[node.key] = start + node.depth * step
         }
         return res
 }

@@ -291,4 +291,38 @@ describe('extension seed stability', () => {
                         expect(e2.x).toBe(e1.x)
                 })
         })
+
+        describe('disconnected extension preserves base seeds', () => {
+                it('completely disjoint keys preserve base', () => {
+                        const base = index((z) => z('a', 'b'))
+                        const next = base((z) => z('c', 'd'))
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBeLessThan(next.d)
+                })
+                it('disjoint keys with custom step preserve base', () => {
+                        const base = index((z) => z('a', 'b'), { step: 1 })
+                        const next = base((z) => z('c', 'd'))
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBeLessThan(next.d)
+                })
+                it('disjoint chain extension preserves base chain', () => {
+                        const base = index((z) => z('a', 'b', 'c'))
+                        const next = base((z) => z('x', 'y', 'z'))
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.c).toBe(base.c)
+                        expect(next.x).toBeLessThan(next.y)
+                        expect(next.y).toBeLessThan(next.z)
+                })
+                it('mixed connected and disconnected keys', () => {
+                        const base = index((z) => z('a', 'b'))
+                        const next = base((z) => [z('b', 'c'), z('x', 'y')])
+                        expect(next.a).toBe(base.a)
+                        expect(next.b).toBe(base.b)
+                        expect(next.b).toBeLessThan(next.c)
+                        expect(next.x).toBeLessThan(next.y)
+                })
+        })
 })
