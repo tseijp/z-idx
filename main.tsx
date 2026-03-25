@@ -1,5 +1,5 @@
 import './main.css'
-import index from './index' // @ts-ignore
+import index, { type ZApi } from './index' // @ts-ignore
 import README from './README.md?raw' // @ts-ignore
 import README_JA from './README.ja.md?raw'
 import markdownit from 'markdown-it'
@@ -32,7 +32,7 @@ const createBadge = () => {
         const badge = document.createElement('div')
         const outline = document.createElement('div')
         const base = { position: 'fixed', pointerEvents: 'none' } as const
-        Object.assign(badge.style, base, { transform: 'translateX(-50%)', background: '#0B8CE9', color: '#fff', padding: '1px 6px', borderRadius: '3px', whiteSpace: 'nowrap', fontSize: '11px', lineHeight: '16px', zIndex: '2147483647' })
+        Object.assign(badge.style, base, { transform: 'translateX(-50%)', background: '#0B8CE9', color: '#fff', padding: '1px 6px', borderRadius: '3px', whiteSpace: 'nowrap', fontSize: '12px', lineHeight: '16px', zIndex: '2147483647' })
         Object.assign(outline.style, base, { border: '1px solid #0B8CE9', zIndex: '2147483646' })
         badge.hidden = true
         outline.hidden = true
@@ -145,8 +145,8 @@ const menuTree = toTree(
                 </NavNode>
         </>
 )
-const Overlay = ({ show, z, name, close }: { show: boolean; z: number; name: string; close: () => void }) => <div className="absolute inset-0 bg-overlay glass" data-z-idx-name={name} style={{ zIndex: z, display: show ? 'block' : 'none' }} onClick={close} />
-const PanelSlot = ({ show, z, name, left, children }: { show: boolean; z: number; name: string; left: string; children: React.ReactNode }) => (
+const Overlay = ({ show, z, name, close }: { show: boolean; z?: number; name: string; close: () => void }) => <div className="absolute inset-0 bg-overlay glass" data-z-idx-name={name} style={{ zIndex: z, display: show ? 'block' : 'none' }} onClick={close} />
+const PanelSlot = ({ show, z, name, left, children }: { show: boolean; z?: number; name: string; left: string; children: React.ReactNode }) => (
         <div className={`absolute p-x w top-68 ${left} grid gap-y bg-white-strong rounded-2x shadow-xl`} data-z-idx-name={name} style={{ zIndex: z, display: show ? 'grid' : 'none' }}>
                 {children}
         </div>
@@ -161,7 +161,7 @@ const PanelList = ({ items, drill }: { items: NodeTree[]; drill: (node: NodeTree
                 ))}
         </>
 )
-const MenuPlayground = ({ next }: { next: Record<string, number> }) => {
+const MenuPlayground = ({ api }: { api?: ZApi<'overlay1' | 'overlay2' | 'modal1' | 'modal2' | 'Github'> }) => {
         const [badge] = useState(createBadge)
         const [path, setPath] = React.useState<string[]>(runtime.currentPath ?? [])
         const [lang, setLang] = React.useState<'en' | 'ja'>(runtime.currentLang)
@@ -208,16 +208,16 @@ const MenuPlayground = ({ next }: { next: Record<string, number> }) => {
                                                 {item.id === 'docs' ? docsLabel : item.label}
                                         </button>
                                 ))}
-                                <a href="https://github.com/tseijp/z-idx" className="ml-auto mr-x text-onyx font-bold tracking" data-z-idx-name="Github" style={{ zIndex: next['Github'] }} target="_blank" rel="noreferrer">
+                                <a href="https://github.com/tseijp/z-idx" className="ml-auto mr-x text-onyx font-bold tracking" data-z-idx-name="Github" style={{ zIndex: api?.Github }} target="_blank" rel="noreferrer">
                                         GitHub
                                 </a>
                         </div>
-                        <Overlay show={!!path.length} z={next['primary overlay']} name="primary overlay" close={() => close(0)} />
-                        <PanelSlot show={!!path.length} z={next['primary modal']} name="primary modal" left="left-x">
+                        <Overlay show={!!path.length} z={api?.overlay1} name="overlay1" close={() => close(0)} />
+                        <PanelSlot show={!!path.length} z={api?.modal1} name="modal1" left="left-x">
                                 <PanelList items={panelOne} drill={(item) => drill(0, item)} />
                         </PanelSlot>
-                        <Overlay show={path.length > 1} z={next['secondary overlay']} name="secondary overlay" close={() => close(1)} />
-                        <PanelSlot show={path.length > 1} z={next['secondary modal']} name="secondary modal" left="left-2x">
+                        <Overlay show={path.length > 1} z={api?.overlay2} name="overlay2" close={() => close(1)} />
+                        <PanelSlot show={path.length > 1} z={api?.modal2} name="modal2" left="left-2x">
                                 <PanelList items={panelTwo} drill={(item) => drill(1, item)} />
                         </PanelSlot>
                 </div>
