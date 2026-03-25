@@ -56,12 +56,12 @@ npm i z-idx
 ### Example
 
 ```tsx
-const base = index((z) => z('primary overlay', ['primary modal', 'Github']), { step: 1 })
-const next = base((z) => z('primary modal', 'secondary overlay', 'secondary modal'))
+const base = index((z) => z(['overlay1', 'overlay2'], 'Github'), { step: 1 })
+const next = base((z) => z('overlay2', ['modal1', 'modal2']))
 
 if (base.Github !== next.Github) throw Error()
 
-render(<MenuPlayground next={next} />)
+render(<MenuPlayground api={next} />)
 ```
 
 ### Purpose
