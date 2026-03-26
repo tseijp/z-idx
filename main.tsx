@@ -3,19 +3,17 @@ import index, { type ZApi } from './index' // @ts-ignore
 import README from './README.md?raw' // @ts-ignore
 import README_JA from './README.ja.md?raw'
 import markdownit from 'markdown-it'
-import mermaid from 'mermaid'
-import React, { useEffect, useState } from 'react'
+import React, { Children, Fragment, isValidElement, lazy, useEffect, useRef, useState, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
-import { themes } from 'prism-react-renderer'
-type NodeProps = { id: string; label: string; href?: string; note?: string; action?: () => void; children?: React.ReactNode }
+import type { ReactNode } from 'react'
+type NodeProps = { id: string; label: string; href?: string; note?: string; action?: () => void; children?: ReactNode }
 type NodeTree = Omit<NodeProps, 'children'> & { children?: NodeTree[] }
-const toTree = (input: React.ReactNode): NodeTree[] => {
+const toTree = (input: ReactNode): NodeTree[] => {
         const items: NodeTree[] = []
-        for (const child of React.Children.toArray(input)) {
-                if (!React.isValidElement(child)) continue
-                if (child.type === React.Fragment) {
+        for (const child of Children.toArray(input)) {
+                if (!isValidElement(child)) continue
+                if (child.type === Fragment) {
                         // @ts-ignore
                         items.push(...toTree(child.props.children))
                         continue
@@ -146,7 +144,7 @@ const menuTree = toTree(
         </>
 )
 const Overlay = ({ show, z, name, close }: { show: boolean; z?: number; name: string; close: () => void }) => <div className="absolute inset-0 bg-overlay glass" data-z-idx-name={name} style={{ zIndex: z, display: show ? 'block' : 'none' }} onClick={close} />
-const PanelSlot = ({ show, z, name, left, children }: { show: boolean; z?: number; name: string; left: string; children: React.ReactNode }) => (
+const PanelSlot = ({ show, z, name, left, children }: { show: boolean; z?: number; name: string; left: string; children: ReactNode }) => (
         <div className={`absolute p-x w top-68 ${left} grid gap-y bg-white-strong rounded-2x shadow-xl`} data-z-idx-name={name} style={{ zIndex: z, display: show ? 'grid' : 'none' }}>
                 {children}
         </div>
@@ -163,8 +161,8 @@ const PanelList = ({ items, drill }: { items: NodeTree[]; drill: (node: NodeTree
 )
 const MenuPlayground = ({ api }: { api?: ZApi<'overlay1' | 'overlay2' | 'modal1' | 'modal2' | 'Github'> }) => {
         const [badge] = useState(createBadge)
-        const [path, setPath] = React.useState<string[]>(runtime.currentPath ?? [])
-        const [lang, setLang] = React.useState<'en' | 'ja'>(runtime.currentLang)
+        const [path, setPath] = useState<string[]>(runtime.currentPath ?? [])
+        const [lang, setLang] = useState<'en' | 'ja'>(runtime.currentLang)
         const openRoot = (id: string) => setPath((runtime.currentPath = [id]))
         const close = (depth: number) => setPath((prev) => (runtime.currentPath = prev.slice(0, depth)))
         const drill = (depth: number, node: NodeTree) => {
@@ -224,32 +222,41 @@ const MenuPlayground = ({ api }: { api?: ZApi<'overlay1' | 'overlay2' | 'modal1'
         )
 }
 type CodeBlockProps = { code: string; language: string; inline?: string }
-const CodeBlock = ({ code, language, inline }: CodeBlockProps) => (
-        <LiveProvider code={code?.trim()} language={language} theme={themes.vsLight}>
-                <LiveEditor style={inline === '1' ? { display: 'inline-block' } : undefined} />
-        </LiveProvider>
-)
-const scope = { React, MenuPlayground, index, runtime }
-const LiveBlock = ({ code, language }: CodeBlockProps) => (
-        <LiveProvider code={code?.trim()} language={language} theme={themes.vsLight} scope={scope} noInline>
-                <div className="live-block">
-                        <LiveEditor className="prism-code" />
-                        <div className="live-output">
-                                <LivePreview />
-                                <LiveError />
+const CodeBlock = lazy(async () => {
+        const [{ LiveProvider, LiveEditor }, { themes }] = await Promise.all([import('react-live'), import('prism-react-renderer')])
+        const Component = ({ code, language, inline }: CodeBlockProps) => (
+                <LiveProvider code={code?.trim()} language={language} theme={themes.vsLight}>
+                        <LiveEditor style={inline === '1' ? { display: 'inline-block' } : undefined} />
+                </LiveProvider>
+        )
+        return { default: Component }
+})
+const LiveBlock = lazy(async () => {
+        const [{ LiveProvider, LiveEditor, LiveError, LivePreview }, { themes }] = await Promise.all([import('react-live'), import('prism-react-renderer')])
+        const Component = ({ code, language }: CodeBlockProps) => (
+                <LiveProvider code={code?.trim()} language={language} theme={themes.vsLight} scope={{ React, MenuPlayground, index, runtime }} noInline>
+                        <div className="live-block">
+                                <LiveEditor className="prism-code" />
+                                <div className="live-output">
+                                        <LivePreview />
+                                        <LiveError />
+                                </div>
                         </div>
-                </div>
-        </LiveProvider>
-)
+                </LiveProvider>
+        )
+        return { default: Component }
+})
 const Mermaid = ({ code, id }: { code: string; id: string }) => (
         <div
                 className="mermaid-block"
                 ref={
-                        React.useRef((el: HTMLDivElement | null) => {
+                        useRef((el: HTMLDivElement | null) => {
                                 if (!el) return
-                                mermaid.render(id, code).then(
-                                        ({ svg }) => (el.innerHTML = svg),
-                                        (error) => (el.innerHTML = `<pre class=\\\"mermaid-error\\\">${String(error)}</pre>`)
+                                import('mermaid').then(({ default: mermaid }) =>
+                                        mermaid.render(id, code).then(
+                                                ({ svg }) => (el.innerHTML = svg),
+                                                (error) => (el.innerHTML = `<pre class=\\\"mermaid-error\\\">${String(error)}</pre>`)
+                                        )
                                 )
                         }).current
                 }
@@ -278,9 +285,9 @@ const slug = (s: string) =>
                 .replace(/[^a-z0-9]+/g, '-')
                 .replace(/(^-|-$)/g, '')
 const App = () => {
-        const [blocks, setBlocks] = React.useState<HTMLElement[]>([])
-        const [charts, setCharts] = React.useState<HTMLElement[]>([])
-        const ref = React.useRef<HTMLElement | null>(null)
+        const [blocks, setBlocks] = useState<HTMLElement[]>([])
+        const [charts, setCharts] = useState<HTMLElement[]>([])
+        const ref = useRef<HTMLElement | null>(null)
         const renderDoc = (doc: string) => {
                 if (!ref.current) return
                 ref.current.innerHTML = doc
@@ -291,7 +298,7 @@ const App = () => {
                 setBlocks(Array.from(ref.current.querySelectorAll('.code-block')) as HTMLElement[])
                 setCharts(Array.from(ref.current.querySelectorAll('.mermaid-block')) as HTMLElement[])
         }
-        React.useEffect(() => {
+        useEffect(() => {
                 runtime.render = (lang: 'en' | 'ja') => {
                         runtime.currentLang = lang
                         renderDoc(lang === 'ja' ? htmlJa : htmlEn)
@@ -307,7 +314,13 @@ const App = () => {
                         {blocks.map((el, i) => {
                                 const { code = '', lang = 'ts', inline = '0', id } = el.dataset
                                 const Component = lang === 'tsx' && inline !== '1' ? LiveBlock : CodeBlock
-                                return createPortal(<Component code={decodeURIComponent(code)} language={lang} inline={inline} />, el, id || `code-${i}`)
+                                return createPortal(
+                                        <Suspense fallback={null}>
+                                                <Component code={decodeURIComponent(code)} language={lang} inline={inline} />
+                                        </Suspense>,
+                                        el,
+                                        id || `code-${i}`
+                                )
                         })}
                         {charts.map((el, i) => {
                                 const { code = '', id } = el.dataset

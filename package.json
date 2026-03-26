@@ -1,6 +1,6 @@
 {
         "name": "z-idx",
-        "version": "1.1.1",
+        "version": "1.1.2",
         "license": "MIT",
         "private": false,
         "sideEffect": false,
@@ -11,7 +11,7 @@
         "bugs": {
                 "url": "https://github.com/tseijp/z-idx/issues"
         },
-        "repository": "tseijp/z-idx.tsei.jp",
+        "repository": "tseijp/z-idx",
         "homepage": "https://z-idx.tsei.jp",
         "keywords": [
                 "z-index",
